@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="../css/stylelogin.css">
+</head>
+<body class="login-page"> 
+    
+    <div class="login-wrapper">
+        <header class="top-bar"> 
+            <span>Contacto: soporte@turnos.com | +54 11 1234-5678</span>
+        </header>
+
+        <div class="login-container">
+            <h2 class="page-title">Bienvenido al Sistema de Turnos</h2>
+            
+            <main class="form-container">
+                <form id="loginForm" class="form">
+                    <p class="form-title">Iniciar Sesión</p>
+                    
+                    <div class="input-container">
+                        <input type="text" id="username" name="username" placeholder="Usuario" required>
+                    </div>
+
+                    <div class="input-container">
+                        <input type="password" id="password" name="password" placeholder="Contraseña" required>
+                    </div>
+
+                    <button type="submit" class="submit" id="login-btn">
+                        Ingresar
+                        <span class="loading-spinner" id="loading-spinner" style="display: none;"></span> 
+                    </button>
+                    
+                    
+                    <p id="message" class="msg"></p>
+                </form>
+            </main>
+        </div>
+    </div>
+
+<script src="../Java/common/common.js"></script> 
+<script src="../Java/user/login.js"></script>
+</body>
+</html>
