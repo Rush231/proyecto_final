@@ -35,11 +35,10 @@ def login_usuario():
         return jsonify({}), 200
 
     auth = request.authorization
-    # --- AGREGA ESTOS PRINTS ---
     print(f"INTENTO DE LOGIN")
     print(f"Email recibido: {auth.username if auth else 'NADA'}")
     print(f"Password recibido: {auth.password if auth else 'NADA'}")
-    # ---------------------------
+   
     if not auth or not auth.username or not auth.password:
         return jsonify({"error": "Faltan credenciales"}), 401
 
@@ -64,7 +63,6 @@ def login_usuario():
             }), 200
             
     except Exception as e:
-        # Esto imprimirá el error real en tu terminal si vuelve a fallar
         print(f"Error en el login: {str(e)}") 
         return jsonify({"error": str(e)}), 500
     

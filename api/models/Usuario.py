@@ -71,11 +71,11 @@ class Usuario:
            raise ValueError("Datos inválidos")
         
 
-        #control de id
+     
 
         cursor.execute("SELECT id FROM Usuario WHERE id = %s", (id,))
 
-        #control email
+      
 
 
         email = datos['email']
@@ -85,7 +85,7 @@ class Usuario:
             raise ValueError("El email ya está en uso por otro usuario")
         
 
-        #control dni
+        
 
         dni = datos['dni']
         cursor.execute("SELECT id FROM Usuario WHERE dni = %s AND id != %s", (dni,))
@@ -112,7 +112,7 @@ class Usuario:
         cursor.close()
         connection.close()
 
-        # CAMBIO CLAVE: Usamos 'password' y 'name' tal como están en tu SQL
+        
         if user_data and user_data['password'] == password_ingresada:
             return {
                 "id": user_data['id'],
@@ -127,5 +127,5 @@ class Usuario:
             "id": self.id,
             "nombre": self.nombre,
             "email": self.email
-            # No devolvemos la contraseña aquí por un mínimo de decencia visual
+
         }

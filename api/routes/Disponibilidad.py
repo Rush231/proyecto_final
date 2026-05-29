@@ -20,8 +20,6 @@ def get_hay_disponibilidad():
 def crear_disponibilidad():
     """Crea el horario de un profesional."""
     datos = request.json
-    # dia_semana: 0=Lunes, 1=Martes...
-    # hora_inicio/fin: "09:00:00", "17:00:00"
     sql = "INSERT INTO Disponibilidad (profesional_id, dia_semana, hora_inicio, hora_fin) VALUES (%s, %s, %s, %s)"
     
     conn = None

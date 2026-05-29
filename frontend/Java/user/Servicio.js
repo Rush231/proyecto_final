@@ -1,58 +1,90 @@
-// Cargar servicios del negocio
-async function cargarServicios() {
-    const token = localStorage.getItem("token");
-
-    try {
-        const response = await fetch(`${apiURL}/servicios`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        const servicios = await handleResponse(response);
-        
-        const tbody = document.querySelector('#servicios .data-table tbody');
-        if(tbody) tbody.innerHTML = '';
-
-        servicios.forEach(servicio => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${servicio.nombre || servicio.name}</td>
-                <td>${servicio.duracion} min</td>
-                <td>--</td>
-                <td><button class="btn-secondary" onclick="eliminarServicio(${servicio.id})">Eliminar</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (error) {
-        console.error("Error al cargar servicios", error);
-    }
+function mostrarFormularioServicio() {
+    document.getElementById('form-servicio-container').classList.remove('hidden');
+    document.getElementById('form-crear-servicio').reset();
+    document.getElementById('servicio-id').value = ''; 
 }
 
-// Crear un nuevo servicio
+function cerrarFormularioServicio() {
+    document.getElementById('form-servicio-container').classList.add('hidden');
+    document.getElementById('form-crear-servicio').reset();
+}
+
 async function crearServicio(event) {
     event.preventDefault();
     const token = localStorage.getItem("token");
 
     const datos = {
         nombre: document.getElementById('servicio-nombre').value,
-        duracion: parseInt(document.getElementById('servicio-duracion').value)
+        duracion: document.getElementById('servicio-duracion').value
     };
 
     try {
         const response = await fetch(`${apiURL}/servicio`, {
             method: 'POST',
             headers: { 
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`, 
                 'Content-Type': 'application/json' 
             },
             body: JSON.stringify(datos)
         });
         
         await handleResponse(response);
-        cargarServicios(); // Recargar la tabla
+        
+        cargarServicios(); 
+        cerrarFormularioServicio();
+        
     } catch (error) {
-        console.error("Error al crear servicio", error);
+        console.error(error);
     }
 }
+
+async function eliminarServicio(id) {
+    if (!confirm("¿Estás seguro de eliminar este servicio?")) {
+        return;
+    }
+    
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`${apiURL}/servicio/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        await handleResponse(response);
+        cargarServicios();
+        
+    } catch (error) {
+        console.error(error);
+        alert("Error al eliminar el servicio.");
+    }
+}
+
+async function cargarServicios() {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`${apiURL}/servicios`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const servicios = await handleResponse(response);
+        
+        const tbody = document.querySelector('#tabla-servicios tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            servicios.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                            <td>${s.nombre || s.name}</td>
+                            <td>${s.duracion} min</td>
+                            <td>
+                                <button class="btn-danger" onclick="eliminarServicio(${s.id})">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+            });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', cargarServicios);

@@ -48,17 +48,45 @@ def crear_servicio(usuario_actual):
             cursor.close()
             conn.close()
             
-@app.route('/servicios/profesional/<int:profesional_id>', methods=['GET', 'OPTIONS'])
+@app.route('/servicios/profesional/<int:prof_id>', methods=['GET', 'OPTIONS'])
 @token_requerido
-def get_servicios_por_profesional(usuario_actual, profesional_id):
+def servicios_por_profesional(usuario_actual, prof_id):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
         
     try:
-        # Llamamos a la nueva función del modelo
-        lista = Servicio.obtener_por_profesional(profesional_id)
-        return jsonify(lista), 200
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        
+        # Unimos la tabla de Servicio con la tabla intermedia
+        sql = """
+            SELECT s.id, s.name AS nombre, s.duracion 
+            FROM Servicio s
+            JOIN Profesional_Servicio ps ON s.id = ps.servicio_id
+            WHERE ps.profesional_id = %s
+        """
+        cursor.execute(sql, (prof_id,))
+        servicios = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        return jsonify(servicios), 200
         
     except Exception as e:
-        print(f"Error interno en /servicios/profesional: {str(e)}") 
-        return jsonify({"error": str(e)}), 500
+        print(f"Error al buscar servicios: {str(e)}")
+        return jsonify({"error": "Error interno"}), 500
+    
+
+@app.route('/servicio/<int:id>', methods=['DELETE', 'OPTIONS'])
+@token_requerido
+def eliminar_servicio(usuario_actual, id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
+    try:
+        Servicio.eliminar(id, usuario_actual['negocio_id'])
+        return jsonify({"message": "Servicio eliminado con éxito"}), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar servicio: {str(e)}")
+        return jsonify({"error": "No se puede eliminar. Verifique que no tenga turnos activos."}), 500

@@ -7,14 +7,11 @@ def token_requerido(f):
     @wraps(f)
     def decorador(*args, **kwargs):
         
-        # --- NUEVO: Dejar pasar la petición OPTIONS de CORS sin pedir token ---
         if request.method == 'OPTIONS':
             return jsonify({}), 200
-        # ---------------------------------------------------------------------
 
         token = None
         
-        # Buscamos el token en la cabecera
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             if auth_header.startswith('Bearer '):

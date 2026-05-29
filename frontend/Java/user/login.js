@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.removeItem("rol");
     localStorage.removeItem("negocio_id");
 
-    // Escuchar el evento de envío del formulario
+
     const loginForm = document.getElementById("loginForm");
     if (loginForm) {
         loginForm.addEventListener("submit", (e) => {
@@ -57,7 +57,7 @@ function userLogin() {
                 localStorage.setItem("rol", response.rol); 
                 localStorage.setItem("negocio_id", response.negocio_id);
 
-                // Redirección al panel principal
+                
                 window.location.href = "dashboard.html";
             } else {
                 messageElement.innerHTML = response.message || "Error al iniciar sesión.";

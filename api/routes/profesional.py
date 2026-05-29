@@ -29,7 +29,7 @@ def crear_profesional():
 
 
 
-# Esta ruta es para listar los profesionales del local
+#  lista los profesionales del local
 @app.route('/profesionales', methods=['GET'])
 @token_requerido
 def get_profesionales(usuario_actual):
@@ -69,3 +69,25 @@ def get_turnos_profesional(usuario_actual, profesional_id):
         if conn:
             cursor.close()
             conn.close()
+
+
+@app.route('/profesional/<int:id>', methods=['PUT', 'DELETE', 'OPTIONS'])
+@token_requerido
+def manejar_profesional_existente(usuario_actual, id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
+    try:
+        if request.method == 'PUT':
+            datos = request.json
+            datos['negocio_id'] = usuario_actual['negocio_id']
+            Profesional.actualizar(id, datos)
+            return jsonify({"message": "Profesional actualizado exitosamente"}), 200
+            
+        elif request.method == 'DELETE':
+            Profesional.eliminar(id, usuario_actual['negocio_id'])
+            return jsonify({"message": "Profesional eliminado con éxito"}), 200
+            
+    except Exception as e:
+        print(f"Error en profesional {id}: {str(e)}")
+        return jsonify({"error": "Error interno o el profesional tiene turnos asociados"}), 500

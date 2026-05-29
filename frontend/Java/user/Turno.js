@@ -1,53 +1,92 @@
-// Cargar turnos del negocio
-async function cargarTurnos() {
-    const apiURL = "http://127.0.0.1:5000";
-    const token = localStorage.getItem("token");
+document.addEventListener('DOMContentLoaded', () => {
+    cargarTurnos();
+    cargarDatosFormularioTurno();
+});
+
+document.getElementById('turno-profesional-id').addEventListener('change', async function() {
+    const profId = this.value;
+    const selectServicio = document.getElementById('turno-servicio-id');
+    
+    if (!profId) {
+        selectServicio.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
+        selectServicio.disabled = true;
+        return;
+    }
 
     try {
-        const response = await fetch(`${apiURL}/turnos`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`, 
-                'Content-Type': 'application/json'
-            }
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${apiURL}/servicios/profesional/${profId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        const turnos = await handleResponse(response);
+        const servicios = await handleResponse(response);
         
-        const tbody = document.querySelector('#turnos .data-table tbody');
-        if(tbody) tbody.innerHTML = '';
+        selectServicio.innerHTML = '<option value="">Seleccione un servicio...</option>';
+        
+        if (servicios.length === 0) {
+            selectServicio.innerHTML = '<option value="">Este profesional no tiene servicios asignados</option>';
+            selectServicio.disabled = true;
+            return;
+        }
 
-        turnos.forEach(turno => {
-            const tr = document.createElement('tr');
-            
-            tr.innerHTML = `
-                <td>${turno.fecha_hora}</td>
-                <td>${turno.cliente_nombre || turno.cliente_id}</td>
-                <td>${turno.servicio_nombre || turno.servicio_id}</td>
-                <td>${turno.estado}</td>
-                <td><button onclick="cancelarTurno(${turno.id})">Cancelar</button></td>
-            `;
-            tbody.appendChild(tr);
+        servicios.forEach(s => {
+            selectServicio.innerHTML += `<option value="${s.id}">${s.nombre || s.name} (${s.duracion} min)</option>`;
+        });
+        selectServicio.disabled = false;
+        
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+async function cargarDatosFormularioTurno() {
+    const token = localStorage.getItem("token");
+    try {
+        const resClientes = await fetch(`${apiURL}/clientes`, { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        const clientes = await handleResponse(resClientes);
+        const selectCliente = document.getElementById('turno-cliente-id');
+        selectCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
+        clientes.forEach(c => {
+            selectCliente.innerHTML += `<option value="${c.id}">${c.nombre || c.name}</option>`;
+        });
+
+        const resProfesionales = await fetch(`${apiURL}/profesionales`, { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        const profesionales = await handleResponse(resProfesionales);
+        const selectProfesional = document.getElementById('turno-profesional-id');
+        selectProfesional.innerHTML = '<option value="">Seleccione un profesional...</option>';
+        profesionales.forEach(p => {
+            selectProfesional.innerHTML += `<option value="${p.id}">${p.nombre || p.name}</option>`;
         });
     } catch (error) {
-        console.error("Error al cargar turnos", error);
-        if(error.error && error.error.includes("expirado")) {
-            window.location.href = "login.html";
-        }
+        console.error(error);
     }
 }
 
-// Asignar un turno
+function mostrarFormularioTurno() {
+    document.getElementById('form-turno-container').classList.remove('hidden');
+}
+
+function cerrarFormularioTurno() {
+    document.getElementById('form-turno-container').classList.add('hidden');
+    document.getElementById('form-crear-turno').reset();
+    const selectServicio = document.getElementById('turno-servicio-id');
+    selectServicio.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
+    selectServicio.disabled = true;
+}
+
 async function crearTurno(event) {
     event.preventDefault();
-    
     const token = localStorage.getItem("token");
 
     const datos = {
-        cliente_id: parseInt(document.getElementById('turno-cliente-id').value),
-        profesional_id: parseInt(document.getElementById('turno-profesional-id').value),
-        servicio_id: parseInt(document.getElementById('turno-servicio-id').value),
-        fecha_hora: document.getElementById('turno-fecha-hora').value 
+        cliente_id: document.getElementById('turno-cliente-id').value,
+        profesional_id: document.getElementById('turno-profesional-id').value,
+        servicio_id: document.getElementById('turno-servicio-id').value,
+        fecha_hora: document.getElementById('turno-fecha-hora').value
     };
 
     try {
@@ -60,104 +99,95 @@ async function crearTurno(event) {
             body: JSON.stringify(datos)
         });
         
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert("No se puede asignar el turno:\n" + errorData.error);
+            return; 
+        }
+        
         await handleResponse(response);
         
-        cargarTurnos(); 
-
-        document.getElementById('form-turno-container').classList.add('hidden');
-        document.getElementById('form-crear-turno').reset();
-    } catch (error) {
-        console.error("Error al crear turno", error);
-    }
-} 
-
-// Mostrar el formulario y cargar los desplegables
-function mostrarFormularioTurno() {
-    document.getElementById('form-turno-container').classList.remove('hidden');
-    cargarOpcionesFormulario();
-}
-
-// Cargar listas desplegables dinámicamente
-// Cargar listas desplegables dinámicamente
-async function cargarOpcionesFormulario() {
-    const token = localStorage.getItem("token");
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-
-    try {
-        // 1. Ahora SOLO pedimos Clientes y Profesionales de entrada
-        const [resClientes, resProfesionales] = await Promise.all([
-            fetch(`${apiURL}/clientes`, { headers }),
-            fetch(`${apiURL}/profesionales`, { headers })
-        ]);
-
-        const clientes = await handleResponse(resClientes);
-        const profesionales = await handleResponse(resProfesionales);
-
-        // -- Llenar select de Clientes --
-        const selCliente = document.getElementById('turno-cliente-id');
-        selCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
-        clientes.forEach(c => {
-            selCliente.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido || ''}</option>`;
-        });
-
-        // -- Llenar select de Profesionales --
-        const selProf = document.getElementById('turno-profesional-id');
-        selProf.innerHTML = '<option value="">Seleccione un profesional...</option>';
-        profesionales.forEach(p => {
-            selProf.innerHTML += `<option value="${p.id}">${p.nombre} (${p.especialidad || 'General'})</option>`;
-        });
-
-        // -- Dejar el select de Servicios listo pero en espera --
-        const selServ = document.getElementById('turno-servicio-id');
-        selServ.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
-        selServ.disabled = true; // Lo bloqueamos visualmente
-
-        // 2. ESCUCHADOR DE CAMBIOS: Cuando eligen un profesional, buscamos sus servicios
-        selProf.addEventListener('change', function() {
-            const profesionalId = this.value;
-            if (profesionalId) {
-                cargarServiciosPorProfesional(profesionalId);
-            } else {
-                // Si vuelven a la opción vacía, bloqueamos de nuevo
-                selServ.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
-                selServ.disabled = true;
-            }
-        });
+        alert("Turno asignado correctamente.");
+        cargarTurnos();
+        cerrarFormularioTurno();
 
     } catch (error) {
-        console.error("Error cargando opciones del formulario:", error);
+        console.error(error);
     }
 }
 
-// 3. NUEVA FUNCIÓN: Busca solo los servicios de UN profesional
-async function cargarServiciosPorProfesional(profesionalId) {
+async function cargarTurnos() {
     const token = localStorage.getItem("token");
-    const selServ = document.getElementById('turno-servicio-id');
-    
-    // Mostramos que está cargando...
-    selServ.innerHTML = '<option value="">Cargando servicios...</option>';
-    selServ.disabled = true;
-
     try {
-        // Llamamos a una nueva ruta en tu backend que crearemos en el siguiente paso
-        const response = await fetch(`${apiURL}/servicios/profesional/${profesionalId}`, {
+        const response = await fetch(`${apiURL}/turnos`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        const turnos = await handleResponse(response);
         
-        const servicios = await handleResponse(response);
-        
-        selServ.innerHTML = '<option value="">Seleccione un servicio...</option>';
-        servicios.forEach(s => {
-            selServ.innerHTML += `<option value="${s.id}">${s.nombre} - ${s.duracion} min</option>`;
+        const tbody = document.querySelector('#turnos .data-table tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            turnos.forEach(t => {
+                let botonesAccion = '';
+                const estadoActual = t.estado || 'Pendiente';
+                
+                if (estadoActual === 'Pendiente') {
+                    botonesAccion = `
+                        <button class="btn-primary" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
+                            onclick="cambiarEstadoTurno(${t.id}, 'Completado')">
+                            Completado
+                        </button>
+                        <button class="btn-danger" style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" 
+                            onclick="cambiarEstadoTurno(${t.id}, 'Ausente')">
+                            Ausente
+                        </button>
+                    `;
+                } else {
+                    botonesAccion = `<span style="color: gray; font-style: italic;">Turno ${estadoActual}</span>`;
+                }
+
+                let fechaFormateada = t.fecha_hora;
+                if (t.fecha_hora) {
+                    const f = new Date(t.fecha_hora);
+                    fechaFormateada = f.toLocaleString();
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${fechaFormateada}</td>
+                        <td>${t.cliente_nombre || t.cliente || '-'}</td>
+                        <td>${t.servicio_nombre || t.servicio || '-'}</td>
+                        <td><strong>${estadoActual}</strong></td>
+                        <td>${botonesAccion}</td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function cambiarEstadoTurno(id, nuevoEstado) {
+    if (!confirm(`¿Estás seguro de marcar este turno como ${nuevoEstado}?`)) {
+        return;
+    }
+
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`${apiURL}/turno/${id}/estado`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ estado: nuevoEstado })
         });
         
-        selServ.disabled = false; // Desbloqueamos para que puedan elegir
-
+        await handleResponse(response);
+        cargarTurnos(); 
+        
     } catch (error) {
-        console.error("Error al cargar servicios del profesional:", error);
-        selServ.innerHTML = '<option value="">Error al cargar servicios</option>';
+        console.error(error);
     }
 }

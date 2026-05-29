@@ -186,3 +186,37 @@ select:focus {
     outline: none;
     border-color: #3498db;
 }
+
+.data-table td:last-child {
+    display: flex;
+    gap: 8px; /* Separación exacta entre botones */
+    align-items: center;
+    border: none; /* Por si tenías bordes que se rompen con flex */
+}
+
+/* Seleccionamos todos los botones dentro de esa última columna */
+.data-table td:last-child button {
+    flex: 1; /* Obliga a que todos los botones compartan el espacio en partes iguales */
+    min-width: 85px; 
+    max-width: 120px;
+    padding: 6px 0;
+    margin: 0; /* Anulamos márgenes viejos */
+    text-align: center;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}

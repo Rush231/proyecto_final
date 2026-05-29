@@ -71,115 +71,217 @@
                 </div>
             </section>
 
-            <section id="turnos" class="content-section hidden">
-                <h2>Gestión de Turnos</h2>
-                <button class="btn-primary" id="btn-nuevo-turno">Asignar Nuevo Turno</button>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>Cliente</th>
-                            <th>Profesional</th>
-                            <th>Servicio</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-turnos-body"></tbody>
-                </table>
-            </section>
-
-            <section id="clientes" class="content-section hidden">
-                <h2>Directorio de Clientes</h2>
-                <button class="btn-primary" id="btn-nuevo-cliente">Registrar Cliente</button>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nombre y Apellido</th>
-                            <th>Teléfono</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-clientes-body"></tbody>
-                </table>
-            </section>
-
-            <section id="profesionales" class="content-section hidden">
-                <h2>Profesionales y Disponibilidad</h2>
-                <button class="btn-primary" id="btn-nuevo-profesional" onclick="mostrarFormularioProfesional()">Añadir Profesional</button>
-                
-                <div id="form-profesional-container" class="hidden" style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <h3 style="margin-bottom: 15px;">Registrar Profesional</h3>
-                    
-                    <form id="form-crear-profesional" onsubmit="crearProfesional(event)">
-                        <div class="form-group">
-                            <label>Nombre del profesional:</label>
-                            <input type="text" id="profesional-nombre" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Especialidad (Ej: Estilista, Médico, etc.):</label>
-                            <input type="text" id="profesional-especialidad" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label style="font-weight: bold; margin-bottom: 8px; display: block;">Servicios que realiza:</label>
-                            <div id="contenedor-servicios-checkbox" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                                <span style="color: gray; font-size: 0.9em;">Cargando servicios...</span>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button type="submit" class="btn-primary" style="margin: 0;">Guardar Profesional</button>
-                            <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="document.getElementById('form-profesional-container').classList.add('hidden')">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Especialidad</th>
-                            <th>Horarios de Trabajo</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </section>
-
-            <section id="servicios" class="content-section hidden">
-                <h2>Catálogo de Servicios</h2>
-                <button class="btn-primary" id="btn-nuevo-servicio">Crear Servicio</button>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Servicio</th>
-                            <th>Duración (min)</th>
-                            <th>Precio</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-servicios-body"></tbody>
-                </table>
-            </section>
-
-            <section id="configuracion" class="content-section hidden">
-                <h2>Configuración del Negocio</h2>
-                </section>
-
-        </main>
+<section id="turnos" class="content-section hidden">
+    <h2>Gestión de Turnos</h2>
+    <button class="btn-primary" id="btn-nuevo-turno" onclick="mostrarFormularioTurno()">Asignar Nuevo Turno</button>
+    
+    <div id="form-turno-container" class="hidden" style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <h3 style="margin-bottom: 15px;">Registrar un nuevo turno</h3>
+        <form id="form-crear-turno" onsubmit="crearTurno(event)">
+            <div class="form-group">
+                <label>Cliente a registrar:</label>
+                <select id="turno-cliente-id" required></select>
+            </div>
+            <div class="form-group">
+                <label>Profesional:</label>
+                <select id="turno-profesional-id" required></select>
+            </div>
+            <div class="form-group">
+                <label>Servicio:</label>
+                <select id="turno-servicio-id" required disabled>
+                    <option value="">Primero seleccione un profesional...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fecha y Hora:</label>
+                <input type="datetime-local" id="turno-fecha-hora" required>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="submit" class="btn-primary" style="margin: 0;">Guardar Turno</button>
+                <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="document.getElementById('form-turno-container').classList.add('hidden')">Cancelar</button>
+            </div>
+        </form>
     </div>
 
-<script src="../Java/user/Turno.js"></script>
+    <table class="data-table" style="margin-top: 20px; width: 100%;">
+        <thead>
+            <tr>
+                <th>Fecha y Hora</th>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</section>
+
+<section id="clientes" class="content-section hidden">
+            <h2>Gestión de Clientes</h2>
+            
+            <button class="btn-primary" onclick="mostrarFormularioCliente()">Añadir Cliente</button>
+            <div id="form-cliente-container" class="hidden" style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <h3 id="form-cliente-titulo" style="margin-bottom: 15px;">Registrar Cliente</h3>
+                
+                <form id="form-crear-cliente" onsubmit="guardarCliente(event)">
+                    <input type="hidden" id="cliente-id">
+                    
+                    <div class="form-group">
+                        <label>Nombre Completo:</label>
+                        <input type="text" id="cliente-nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico:</label>
+                        <input type="email" id="cliente-correo">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono:</label>
+                        <input type="text" id="cliente-telefono">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button type="submit" class="btn-primary" style="margin: 0;">Guardar Cliente</button>
+                        <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="cerrarFormularioCliente()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <table class="data-table" style="margin-top: 20px; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </section>
+
+            <section id="profesionales" class="content-section hidden">
+    <h2>Profesionales y Disponibilidad</h2>
+    <button class="btn-primary" id="btn-nuevo-profesional" onclick="mostrarFormularioProfesional()">Añadir Profesional</button>
+    <div id="form-profesional-container" class="hidden" style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                
+                <h3 id="form-profesional-titulo" style="margin-bottom: 15px;">Registrar Profesional</h3>
+                
+                <form id="form-crear-profesional" onsubmit="guardarProfesional(event)">
+                    
+                    <input type="hidden" id="profesional-id">
+                    
+                    <div class="form-group">
+                        <label>Nombre del profesional:</label>
+                        <input type="text" id="profesional-nombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Especialidad:</label>
+                        <input type="text" id="profesional-especialidad" required>
+                    </div>
+
+                        <div class="form-group">
+                        <label style="font-weight: bold; margin-bottom: 8px; display: block;">Días de trabajo:</label>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
+                            <label><input type="checkbox" class="dia-checkbox" value="1"> Lun</label>
+                            <label><input type="checkbox" class="dia-checkbox" value="2"> Mar</label>
+                            <label><input type="checkbox" class="dia-checkbox" value="3"> Mié</label>
+                            <label><input type="checkbox" class="dia-checkbox" value="4"> Jue</label>
+                            <label><input type="checkbox" class="dia-checkbox" value="5"> Vie</label>
+                            <label><input type="checkbox" class="dia-checkbox" value="6"> Sáb</label>
+                            <label><input type="checkbox" class="dia-checkbox" value="0"> Dom</label>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div class="form-group" style="width: 50%; margin-bottom: 0;">
+                            <label>Hora de Entrada:</label>
+                            <input type="time" id="profesional-hora-inicio" required>
+                        </div>
+                        <div class="form-group" style="width: 50%; margin-bottom: 0;">
+                            <label>Hora de Salida:</label>
+                            <input type="time" id="profesional-hora-fin" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: bold; margin-bottom: 8px; display: block;">Servicios que realiza:</label>
+                        <div id="contenedor-servicios-checkbox" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                            <span style="color: gray; font-size: 0.9em;">Cargando servicios...</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button type="submit" class="btn-primary" style="margin: 0;">Guardar Profesional</button>
+                        <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="cerrarFormularioProfesional()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+    <table class="data-table" style="margin-top: 20px; width: 100%;">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Especialidad</th>
+                <th>Horarios de Trabajo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</section>
+    <div id="servicios" class="view-section hidden">
+    
+    <h3 style="margin-bottom: 15px;">Gestión de Servicios</h3>
+    <button class="btn-primary" style="margin-bottom: 20px;" onclick="mostrarFormularioServicio()">+ Nuevo Servicio</button>
+
+    <div id="form-servicio-container" class="container hidden" style="background-color: #f8f9fa; border: 1px solid #ddd; margin-bottom: 20px;">
+        <h4 style="margin-bottom: 15px;">Crear Nuevo Servicio</h4>
+        
+        <form id="form-crear-servicio" onsubmit="crearServicio(event)">
+            <input type="hidden" id="servicio-id"> 
+            
+            <div class="form-group">
+                <label>Nombre del Servicio:</label>
+                <input type="text" id="servicio-nombre" placeholder="Ej. Consulta, Mantenimiento..." required>
+            </div>
+            
+            <div class="form-group">
+                <label>Duración (en minutos):</label>
+                <input type="number" id="servicio-duracion" placeholder="Ej. 30" required min="5" step="5">
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <button type="submit" class="btn-primary">Guardar Servicio</button>
+                <button type="button" class="btn-secondary" onclick="cerrarFormularioServicio()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="container">
+        <table class="data-table" id="tabla-servicios">
+            <thead>
+                <tr>
+                    <th>Nombre del Servicio</th>
+                    <th>Duración (min)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    </div>
+
+<script src="../Java/user/utils.js"></script>
+
+    <script src="../Java/user/Turno.js"></script>
     <script src="../Java/user/Cliente.js"></script>
     <script src="../Java/user/Profesional.js"></script>
     <script src="../Java/user/Servicio.js"></script>
     
     <script src="../Java/user/dashboard.js"></script>
-</body>
-</html>
 </body>
 </html>

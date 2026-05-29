@@ -1,73 +1,114 @@
-async function cargarClientes() {
-    const token = localStorage.getItem("token");
 
-    try {
-        // La URL ya no necesita el negocio_id al final
-        const response = await fetch(`${apiURL}/clientes`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`, // <-- Aquí se envía el JWT
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const clientes = await handleResponse(response);
-        const tbody = document.querySelector('#tabla-clientes-body');
-        tbody.innerHTML = ''; 
-
-        clientes.forEach(cliente => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${cliente.nombre} ${cliente.apellido}</td>
-                <td>${cliente.telefono}</td>
-                <td><button onclick="eliminarCliente(${cliente.id})">Eliminar</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (error) {
-        console.error("Error al cargar clientes", error);
-        // Si el token expiró, redirigir al login
-        if(error.error && error.error.includes("expirado")) {
-            window.location.href = "login.html";
-        }
-    }
+function mostrarFormularioCliente() {
+    document.getElementById('cliente-id').value = ''; 
+    document.getElementById('form-cliente-titulo').innerText = "Registrar Cliente";
+    document.getElementById('form-cliente-container').classList.remove('hidden');
 }
 
-// Registrar un nuevo cliente
-async function crearCliente(event) {
+
+function abrirEditarCliente(id, nombre, correo, telefono) {
+    document.getElementById('cliente-id').value = id; // Guardamos el ID en el input oculto
+    document.getElementById('cliente-nombre').value = nombre;
+    document.getElementById('cliente-correo').value = correo === '-' ? '' : correo;
+    document.getElementById('cliente-telefono').value = telefono === '-' ? '' : telefono;
+    
+    document.getElementById('form-cliente-titulo').innerText = "Editar Cliente";
+    document.getElementById('form-cliente-container').classList.remove('hidden');
+}
+
+function cerrarFormularioCliente() {
+    document.getElementById('form-cliente-container').classList.add('hidden');
+    document.getElementById('form-crear-cliente').reset();
+}
+
+async function guardarCliente(event) {
     event.preventDefault();
-    const negocioId = localStorage.getItem("negocio_id");
+    const token = localStorage.getItem("token");
+    
+    const id = document.getElementById('cliente-id').value; // Leemos el campo oculto
     
     const datos = {
         nombre: document.getElementById('cliente-nombre').value,
-        apellido: document.getElementById('cliente-apellido').value,
-        telefono: document.getElementById('cliente-telefono').value,
-        negocio_id: negocioId
+        correo: document.getElementById('cliente-correo').value,
+        telefono: document.getElementById('cliente-telefono').value
     };
 
+    // Si el ID tiene número significa que estamos EDITANDO (PUT), si está vacío estamos CREANDO (POST)
+    const url = id ? `${apiURL}/cliente/${id}` : `${apiURL}/cliente`;
+    const metodo = id ? 'PUT' : 'POST';
+
     try {
-        const response = await fetch(`${apiURL}/crear`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch(url, {
+            method: metodo,
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(datos)
         });
         
         await handleResponse(response);
-        cargarClientes(); // Recargar la tabla
+        
+        cargarClientes(); 
+        cerrarFormularioCliente();
     } catch (error) {
-        console.error("Error al crear cliente", error);
+        console.error(`Error al ${metodo === 'PUT' ? 'editar' : 'crear'} cliente:`, error);
     }
 }
 
-// Eliminar un cliente
-async function eliminarCliente(id) {
+async function cargarClientes() {
+    const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`${apiURL}/eliminar/${id}`, {
-            method: 'DELETE'
+        const response = await fetch(`${apiURL}/clientes`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-        await handleResponse(response);
-        cargarClientes(); 
+        const clientes = await handleResponse(response);
+        
+        const tbody = document.querySelector('#clientes .data-table tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            clientes.forEach(c => {
+                const nombreSeguro = (c.nombre || c.name).replace(/'/g, "\\'"); // Evita errores con nombres con comillas
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.nombre || c.name}</td>
+                        <td>${c.correo || '-'}</td>
+                        <td>${c.telefono || '-'}</td>
+                        <td>
+                            <button class="btn-primary" style="padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
+                                onclick="abrirEditarCliente(${c.id}, '${nombreSeguro}', '${c.correo || '-'}', '${c.telefono || '-'}')">
+                                Editar
+                            </button>
+                            <button class="btn-danger" style="background-color: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" 
+                                onclick="eliminarCliente(${c.id})">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
     } catch (error) {
-        console.error("Error al eliminar cliente", error);
+        console.error("Error al cargar clientes:", error);
     }
 }
+
+async function eliminarCliente(id) {
+    if (!confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
+        return;
+    }
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`${apiURL}/eliminar/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        await handleResponse(response);
+        cargarClientes();
+    } catch (error) {
+        console.error("Error al eliminar cliente:", error);
+        alert("No se pudo eliminar el cliente.");
+    }
+}
+
+document.addEventListener('DOMContentLoaded', cargarClientes);

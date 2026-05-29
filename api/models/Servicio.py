@@ -15,16 +15,6 @@ class Servicio:
 
     from api.db.db_config import get_db_connection
 
-class Servicio:
-    def __init__(self, nombre, duracion, negocio_id, id=None):
-        # ... tu código actual ...
-        pass
-
-    def guardar(self, cursor):
-        # ... tu código actual ...
-        pass
-
-    # --- NUEVA FUNCIÓN A AGREGAR ---
     @staticmethod
     def obtener_por_negocio(negocio_id):
         connection = get_db_connection()
@@ -43,7 +33,7 @@ class Servicio:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         
-        # Hacemos un JOIN con la tabla puente para filtrar por el profesional exacto
+
         sql = """
             SELECT s.id, s.name AS nombre, s.duracion 
             FROM Servicio s
@@ -56,3 +46,39 @@ class Servicio:
         cursor.close()
         connection.close()
         return servicios
+    @classmethod
+    def registrar(cls, datos):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        try:
+            sql = "INSERT INTO Servicio (name, duracion, negocio_id) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (datos['nombre'], datos['duracion'], datos['negocio_id']))
+            nuevo_id = cursor.lastrowid
+            connection.commit()
+            return nuevo_id
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()
+
+    @classmethod
+    def eliminar(cls, id, negocio_id):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        try:
+            cursor.execute("DELETE FROM Profesional_Servicio WHERE servicio_id = %s", (id,))
+            
+            sql = "DELETE FROM Servicio WHERE id = %s AND negocio_id = %s"
+            cursor.execute(sql, (id, negocio_id))
+            
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()

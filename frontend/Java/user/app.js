@@ -7,7 +7,6 @@ loginForm.addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
 
     try {
-        // Enviar petición POST a la ruta correspondiente de la API
         const response = await fetch('http://127.0.0.1:5000/api/login', {
             method: 'POST',
             headers: {
@@ -19,12 +18,12 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            // Si el backend valida al usuario, guardar el token (si aplica) y mostrar el panel
+        
             console.log("Ingreso exitoso");
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('app-view').classList.remove('hidden');
             
-            // Aquí puedes llamar a otras funciones para cargar los datos del sistema
+          
             cargarClientes();
         } else {
             // Mostrar error del servidor (ej. credenciales incorrectas)

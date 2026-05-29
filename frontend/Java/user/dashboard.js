@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // 2. Navegación del menú
     const navLinks = document.querySelectorAll('#nav-links a');
     const contentSections = document.querySelectorAll('.content-section');
 
@@ -15,13 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const targetId = link.getAttribute('data-target');
 
-            // Ocultar todas las secciones
+            
             contentSections.forEach(section => {
                 section.classList.add('hidden');
                 section.classList.remove('active');
             });
 
-            // Mostrar la seleccionada
+            
             const targetSection = document.getElementById(targetId);
             targetSection.classList.remove('hidden');
             targetSection.classList.add('active');
@@ -35,13 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 3. Cierre de sesión
+
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.clear();
         window.location.href = "login.html";
     });
 
-    // 4. Lógica de filtro para reportes
+    
     const filtroReporte = document.getElementById('filtro-reporte');
     if(filtroReporte) {
         filtroReporte.addEventListener('change', (e) => {
@@ -49,18 +48,40 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Cargar reportes al iniciar por primera vez
+    
     cargarReportes('profesional');
 });
 
-// Función central para manejar la analítica
+
 async function cargarReportes(criterio = 'profesional') {
     const negocioId = localStorage.getItem("negocio_id");
     
-    // Aquí es donde posteriormente harás el fetch a tu backend
-    // Ejemplo: const response = await fetch(`${apiURL}/reportes/${negocioId}?agrupar=${criterio}`);
-    
-    // Por ahora, limpiamos la tabla para prepararla
     const tbody = document.querySelector('#tabla-reportes tbody');
     if(tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Cargando datos por ${criterio}...</td></tr>`;
+
 }
+
+
+function ocultarTodasLasSecciones() {
+    const secciones = document.querySelectorAll('.view-section');
+    secciones.forEach(seccion => {
+        seccion.classList.add('hidden'); // Les pone a todos el candado de oculto
+    });
+}
+
+document.querySelectorAll('#nav-links a').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // 1. PRIMERO: Ocultamos todo lo que existe
+        ocultarTodasLasSecciones();
+        
+        // 2. DESPUÉS: Quitamos la clase hidden solo al que queremos ver
+        const targetId = e.target.getAttribute('data-target');
+        const seccionAMostrar = document.getElementById(targetId);
+        
+        if (seccionAMostrar) {
+            seccionAMostrar.classList.remove('hidden');
+        }
+    });
+});
