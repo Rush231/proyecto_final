@@ -107,7 +107,35 @@
 
             <section id="profesionales" class="content-section hidden">
                 <h2>Profesionales y Disponibilidad</h2>
-                <button class="btn-primary" id="btn-nuevo-profesional">Añadir Profesional</button>
+                <button class="btn-primary" id="btn-nuevo-profesional" onclick="mostrarFormularioProfesional()">Añadir Profesional</button>
+                
+                <div id="form-profesional-container" class="hidden" style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <h3 style="margin-bottom: 15px;">Registrar Profesional</h3>
+                    
+                    <form id="form-crear-profesional" onsubmit="crearProfesional(event)">
+                        <div class="form-group">
+                            <label>Nombre del profesional:</label>
+                            <input type="text" id="profesional-nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Especialidad (Ej: Estilista, Médico, etc.):</label>
+                            <input type="text" id="profesional-especialidad" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-weight: bold; margin-bottom: 8px; display: block;">Servicios que realiza:</label>
+                            <div id="contenedor-servicios-checkbox" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <span style="color: gray; font-size: 0.9em;">Cargando servicios...</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button type="submit" class="btn-primary" style="margin: 0;">Guardar Profesional</button>
+                            <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="document.getElementById('form-profesional-container').classList.add('hidden')">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -117,7 +145,8 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-profesionales-body"></tbody>
+                    <tbody>
+                        </tbody>
                 </table>
             </section>
 
@@ -144,11 +173,13 @@
         </main>
     </div>
 
-    <script src="../Java/common/common.js"></script>
-    <script src="../Java/users/dashboard.js"></script>
-    <script src="../Java/users/Turnos.js"></script>
-    <script src="../Java/users/Clientes.js"></script>
-    <script src="../Java/users/Servicio.js"></script>
-    <script src="../Java/users/Profesionales.js"></script>
+<script src="../Java/user/Turno.js"></script>
+    <script src="../Java/user/Cliente.js"></script>
+    <script src="../Java/user/Profesional.js"></script>
+    <script src="../Java/user/Servicio.js"></script>
+    
+    <script src="../Java/user/dashboard.js"></script>
+</body>
+</html>
 </body>
 </html>

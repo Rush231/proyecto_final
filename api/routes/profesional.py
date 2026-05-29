@@ -29,16 +29,19 @@ def crear_profesional():
 
 
 
-@app.route('/turnos/profesional/<int:profesional_id>', methods=['GET'])
+# Esta ruta es para listar los profesionales del local
+@app.route('/profesionales', methods=['GET'])
 @token_requerido
 def get_profesionales(usuario_actual):
     negocio_id = usuario_actual['negocio_id']
     lista = Profesional.obtener_por_negocio(negocio_id)
     return jsonify(lista), 200
-def get_turnos_profesional(profesional_id):
+
+# Esta ruta es para ver los turnos que tiene asignados un profesional específico
+@app.route('/turnos/profesional/<int:profesional_id>', methods=['GET'])
+@token_requerido
+def get_turnos_profesional(usuario_actual, profesional_id):
     """Obtiene todos los turnos de un profesional (para su agenda)."""
-    
-    # Unimos con Cliente y Servicio para dar más datos
     sql = """
         SELECT t.id, t.fecha_hora, t.estado, 
                c.nombre AS nombre_cliente, 

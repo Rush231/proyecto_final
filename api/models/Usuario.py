@@ -1,5 +1,5 @@
 from api.db.db_config import get_db_connection
-
+from flask import jsonify
 class Usuario:
 
     schema = {
@@ -101,18 +101,25 @@ class Usuario:
         return self.id
 
     @staticmethod
-    def login(cursor, email, password_ingresada):
+    def login(email, password_ingresada):
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True) 
+        
         sql = "SELECT * FROM Usuario WHERE email = %s"
         cursor.execute(sql, (email,))
         user_data = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
 
-        if user_data and user_data['contrasena'] == password_ingresada:
-            return Usuario(
-                id=user_data['id'],
-                nombre=user_data['nombre'],
-                email=user_data['email'],
-                password=user_data['contrasena']
-            )
+        # CAMBIO CLAVE: Usamos 'password' y 'name' tal como están en tu SQL
+        if user_data and user_data['password'] == password_ingresada:
+            return {
+                "id": user_data['id'],
+                "name": user_data['name'],
+                "email": user_data['email'],
+                "negocio_id": user_data['negocio_id'] 
+            }
         return None
 
     def to_dict(self):

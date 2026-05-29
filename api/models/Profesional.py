@@ -1,3 +1,5 @@
+from api.db.db_config import get_db_connection
+
 class Profesional:
     schema = {
         "name": str,
@@ -37,4 +39,14 @@ class Profesional:
                 return False, f"Tipo inválido para el campo: {key}"
         return None
     
-    
+    @staticmethod
+    def obtener_por_negocio(negocio_id):
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Fíjate que tu tabla usa 'name' en inglés para los profesionales
+        sql = "SELECT id, name AS nombre, especialidad FROM Profesional WHERE negocio_id = %s"
+        cursor.execute(sql, (negocio_id,))
+        profesionales = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return profesionales

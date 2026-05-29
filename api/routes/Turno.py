@@ -40,8 +40,31 @@ def crear_turno():
 @app.route('/turnos', methods=['GET'])
 @token_requerido
 def get_todos_los_turnos(usuario_actual):
-    # Filtramos por el ID del negocio que viene en el token
-    negocio_id = usuario_actual['negocio_id']
-    lista = Turno.obtener_por_negocio(negocio_id)
-    return jsonify(lista), 200
+    try:
+        # Filtramos por el ID del negocio que viene en el token
+        negocio_id = usuario_actual['negocio_id']
+        lista = Turno.obtener_por_negocio(negocio_id)
+        
+        return jsonify(lista), 200
+        
+    except Exception as e:
+        # Si algo falla en la BD, ahora el servidor enviará un JSON con el error real
+        # en lugar de romperse y causar un falso error de CORS.
+        print(f"Error interno en /turnos: {str(e)}") 
+        return jsonify({"error": str(e)}), 500
 
+@app.route('/turno/<int:id>', methods=['DELETE', 'OPTIONS'])
+@token_requerido
+def eliminar_turno(usuario_actual, id):
+    # 1. Responder al Preflight de CORS del navegador
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
+    try:
+        # 2. Llamamos al modelo para borrar el registro
+        Turno.eliminar(id)
+        return jsonify({"message": "Turno cancelado y eliminado con éxito"}), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar el turno {id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500

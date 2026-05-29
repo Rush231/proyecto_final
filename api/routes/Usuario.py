@@ -29,34 +29,43 @@ def obtener_usuario(usuario_id):
         return jsonify({"error": "Usuario no encontrado"}), 404
     
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST', 'OPTIONS'])
 def login_usuario():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
     auth = request.authorization
+    # --- AGREGA ESTOS PRINTS ---
+    print(f"INTENTO DE LOGIN")
+    print(f"Email recibido: {auth.username if auth else 'NADA'}")
+    print(f"Password recibido: {auth.password if auth else 'NADA'}")
+    # ---------------------------
+    if not auth or not auth.username or not auth.password:
+        return jsonify({"error": "Faltan credenciales"}), 401
+
     try:
-        usuario = Usuario.login(auth)
+        usuario = Usuario.login(auth.username, auth.password)
+        
         if usuario:
-            # Crear el "payload" (los datos que irán encriptados en el token)
             payload = {
                 'id': usuario['id'],
                 'negocio_id': usuario['negocio_id'],
-                'rol': usuario['rol'],
-                # El token expira en 24 horas por seguridad
+                'rol': 'admin',
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
             }
             
-            # Generar el token firmado con tu clave secreta
             token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
             
-            # Devolver los datos básicos y el token al frontend
             return jsonify({
                 "id": usuario['id'],
-                "username": usuario['usuario'], 
+                "username": usuario['name'], # <-- Cambiado de 'nombre' a 'name'
                 "negocio_id": usuario['negocio_id'],
-                "rol": usuario['rol'],
                 "token": token
             }), 200
             
     except Exception as e:
+        # Esto imprimirá el error real en tu terminal si vuelve a fallar
+        print(f"Error en el login: {str(e)}") 
         return jsonify({"error": str(e)}), 500
     
     return jsonify({"error": "Credenciales inválidas"}), 401
