@@ -35,7 +35,7 @@
                         <p class="card-value" id="rep-ocupacion">--%</p>
                     </div>
                     <div class="card">
-                        <h4>Turnos Disponibles</h4>
+                        <h4>Turnos Completados</h4>
                         <p class="card-value" id="rep-disponibles">--</p>
                     </div>
                     <div class="card">
@@ -272,16 +272,47 @@
             </tbody>
         </table>
     </div>
+    </div> <section id="configuracion" class="content-section hidden">
+        <h2>Configuración del Negocio</h2>
+        <p style="margin-bottom: 20px; color: #666;">Ajusta los parámetros operativos de tu local.</p>
+        
+        <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 600px;">
+            <form id="form-configuracion" onsubmit="guardarConfiguracion(event)">
+                <div class="form-group">
+                    <label>Nombre Comercial:</label>
+                    <input type="text" id="config-nombre" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Teléfono de Contacto / WhatsApp:</label>
+                    <input type="text" id="config-telefono" placeholder="Ej. 2932 123456">
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="width: 50%; margin-bottom: 0;">
+                        <label>Hora de Apertura:</label>
+                        <input type="time" id="config-apertura">
+                    </div>
+                    <div class="form-group" style="width: 50%; margin-bottom: 0;">
+                        <label>Hora de Cierre:</label>
+                        <input type="time" id="config-cierre">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="margin-top: 15px; width: 100%;">Guardar Cambios</button>
+            </form>
+        </div>
+    </section>
 
     </div>
 
-<script src="../Java/user/utils.js"></script>
+</main> <script src="../Java/user/utils.js"></script>
 
     <script src="../Java/user/Turno.js"></script>
     <script src="../Java/user/Cliente.js"></script>
     <script src="../Java/user/Profesional.js"></script>
     <script src="../Java/user/Servicio.js"></script>
-    
+    <script src="../Java/user/Negocio.js"></script>
     <script src="../Java/user/dashboard.js"></script>
 </body>
 </html>

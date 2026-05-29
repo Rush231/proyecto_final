@@ -29,7 +29,7 @@ def crear_servicio(usuario_actual):
     datos = request.json
     datos['negocio_id'] = usuario_actual['negocio_id']
     datos = request.json
-    sql = "INSERT INTO Servicio (nombre, duracion, negocio_id) VALUES (%s, %s, %s)"
+    sql = "INSERT INTO Servicio (name, duracion, negocio_id) VALUES (%s, %s, %s)"
     
     conn = None
     try:

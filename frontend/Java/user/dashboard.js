@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Verificación de seguridad
+    
     const token = localStorage.getItem("token");
     if (!token) {
         window.location.href = "login.html";
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
             targetSection.classList.remove('hidden');
             targetSection.classList.add('active');
             
-            // Llamar funciones de carga de datos según la sección
+            
             if (targetId === 'clientes' && typeof cargarClientes === 'function') cargarClientes();
             if (targetId === 'servicios' && typeof cargarServicios === 'function') cargarServicios();
             if (targetId === 'turnos' && typeof cargarTurnos === 'function') cargarTurnos();
@@ -54,11 +54,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 async function cargarReportes(criterio = 'profesional') {
-    const negocioId = localStorage.getItem("negocio_id");
-    
+    const token = localStorage.getItem("token");
     const tbody = document.querySelector('#tabla-reportes tbody');
-    if(tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Cargando datos por ${criterio}...</td></tr>`;
+    
+    if (!token) return;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Cargando datos por ${criterio}...</td></tr>`;
 
+    try {
+        const response = await fetch(`${apiURL}/turnos`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const turnos = await handleResponse(response);
+
+
+        const totalTurnos = turnos.length;
+        const turnosReservados = turnos.filter(t => t.estado === 'Pendiente' || t.estado === 'reservado').length;
+        const turnosCompletados = turnos.filter(t => t.estado === 'Completado').length;
+        const turnosCancelados = turnos.filter(t => t.estado === 'Cancelado' || t.estado === 'Ausente').length;
+
+        
+        const porcentajeOcupacion = totalTurnos === 0 ? 0 : Math.round((turnosReservados / totalTurnos) * 100);
+
+
+        document.getElementById('rep-ocupacion').innerText = `${porcentajeOcupacion}%`;
+        document.getElementById('rep-reservados').innerText = turnosReservados;
+        document.getElementById('rep-disponibles').innerText = turnosCompletados;
+
+   
+        const agrupado = {};
+
+        turnos.forEach(t => {
+            let clave = "Desconocido";
+            // Determinar la clave de agrupación según lo que seleccionó el usuario
+            if (criterio === 'profesional') {
+                clave = t.profesional_nombre || "Profesional " + t.profesional_id;
+            } else if (criterio === 'servicio') {
+                clave = t.servicio_nombre || "Servicio Desconocido";
+            } else if (criterio === 'cliente') {
+                clave = t.cliente_nombre || "Cliente Desconocido";
+            }
+
+            if (!agrupado[clave]) {
+                agrupado[clave] = { total: 0, completados: 0, cancelados: 0 };
+            }
+
+            agrupado[clave].total++;
+            if (t.estado === 'Completado') agrupado[clave].completados++;
+            if (t.estado === 'Cancelado' || t.estado === 'Ausente') agrupado[clave].cancelados++;
+        });
+
+        tbody.innerHTML = '';
+
+        if (Object.keys(agrupado).length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No hay turnos registrados en este local.</td></tr>`;
+            return;
+        }
+
+        // Iterar sobre el objeto construido y generar el HTML
+        for (const [nombre, datos] of Object.entries(agrupado)) {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${nombre}</td>
+                    <td>${datos.total}</td>
+                    <td>${datos.completados}</td>
+                    <td>${datos.cancelados}</td>
+                </tr>
+            `;
+        }
+
+    } catch (error) {
+        console.error("Error al cargar reportes:", error);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: red;">Error al cargar los datos.</td></tr>`;
+    }
 }
 
 
@@ -84,4 +151,5 @@ document.querySelectorAll('#nav-links a').forEach(link => {
             seccionAMostrar.classList.remove('hidden');
         }
     });
+
 });

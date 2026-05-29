@@ -15,7 +15,7 @@ def crear_usuario():
     # Datos del formulario
     nombre = datos['nombre']
     email = datos['email']
-    contrasena_plana = datos['contrasena'] # La contraseña del usuario
+    contrasena_plana = datos['contrasena'] 
     negocio_id = datos['negocio_id']
 
 
@@ -57,7 +57,7 @@ def login_usuario():
             
             return jsonify({
                 "id": usuario['id'],
-                "username": usuario['name'], # <-- Cambiado de 'nombre' a 'name'
+                "username": usuario['name'],
                 "negocio_id": usuario['negocio_id'],
                 "token": token
             }), 200

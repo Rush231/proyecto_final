@@ -146,11 +146,7 @@ async function cargarTurnos() {
                     botonesAccion = `<span style="color: gray; font-style: italic;">Turno ${estadoActual}</span>`;
                 }
 
-                let fechaFormateada = t.fecha_hora;
-                if (t.fecha_hora) {
-                    const f = new Date(t.fecha_hora);
-                    fechaFormateada = f.toLocaleString();
-                }
+                let fechaFormateada = t.fecha_hora || '-';
 
                 tbody.innerHTML += `
                     <tr>

@@ -38,3 +38,28 @@ def get_todos_negocios():
     
 
 
+from api.utils.seguridad import token_requerido
+
+@app.route('/negocio/configuracion', methods=['GET'])
+@token_requerido
+def obtener_configuracion(usuario_actual):
+    # El usuario_actual se inyecta gracias al token_requerido
+    negocio_id = usuario_actual['negocio_id']
+    try:
+        negocio = Negocio.obtener_por_id(negocio_id)
+        if negocio:
+            return jsonify(negocio), 200
+        return jsonify({"error": "Negocio no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/negocio/configuracion', methods=['PUT'])
+@token_requerido
+def actualizar_configuracion(usuario_actual):
+    negocio_id = usuario_actual['negocio_id']
+    datos = request.json
+    try:
+        Negocio.actualizar(negocio_id, datos)
+        return jsonify({"mensaje": "Configuración actualizada correctamente"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

@@ -45,7 +45,6 @@ function userLogin() {
         }
     };
 
-    // Petición al endpoint del servidor
     fetch(apiURL + '/login', requestOptions)
         .then(response => handleResponse(response))
         .then(response => {

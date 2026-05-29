@@ -38,21 +38,28 @@ class Turno:
         cursor = connection.cursor(dictionary=True)
         
         sql = """
-            SELECT t.id, t.fecha_hora, t.estado, 
+            SELECT t.id, t.fecha_hora, t.estado, t.profesional_id,
                    c.name AS cliente_nombre, 
-                   s.name AS servicio_nombre
+                   s.name AS servicio_nombre,
+                   p.name AS profesional_nombre
             FROM Turno t
             JOIN Cliente c ON t.cliente_id = c.id
             JOIN Servicio s ON t.servicio_id = s.id
+            JOIN Profesional p ON t.profesional_id = p.id
             WHERE s.negocio_id = %s
             ORDER BY t.fecha_hora ASC
         """
         cursor.execute(sql, (negocio_id,))
         turnos = cursor.fetchall()
+        
+        # Formatear la fecha a texto estricto para evitar el desfase horario en Javascript
+        for t in turnos:
+            if t['fecha_hora']:
+                t['fecha_hora'] = t['fecha_hora'].strftime('%d/%m/%Y %H:%M')
+                
         cursor.close()
         connection.close()
         return turnos
-    
     @staticmethod
     def eliminar(turno_id):
         """Elimina un turno físico de la base de datos por su ID."""
