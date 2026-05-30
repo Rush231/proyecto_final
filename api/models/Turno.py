@@ -80,7 +80,7 @@ class Turno:
 
         try:
             # El input de HTML5 envía el formato 'YYYY-MM-DDTHH:MM'
-            fecha_inicio = datetime.strptime(fecha_hora_str, '%Y-%m-%dT%H:%M')
+            fecha_inicio = datetime.strptime(fecha_hora_str, '%Y-%m-%d %H:%M')
 
             # Calcula a qué hora termina este nuevo turno
             cursor.execute("SELECT duracion FROM Servicio WHERE id = %s", (servicio_id,))

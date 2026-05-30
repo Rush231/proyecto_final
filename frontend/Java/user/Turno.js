@@ -65,9 +65,35 @@ async function cargarDatosFormularioTurno() {
         console.error(error);
     }
 }
-
+let calendarioTurno = null;
 function mostrarFormularioTurno() {
     document.getElementById('form-turno-container').classList.remove('hidden');
+    document.getElementById('form-turno-container').classList.remove('hidden');
+    document.getElementById('form-crear-turno').reset();
+
+    // Lógica para bloquear días pasados
+    const inputFecha = document.getElementById('turno-fecha-hora');
+    
+    // Obtener fecha y hora en el momento exacto en el que se abre el formulario
+    const ahora = new Date();
+    
+    // Ajustar a la zona horaria local 
+    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+    
+    // Cortar el texto para que quede en el formato YYYY-MM-DDTHH:MM
+    const fechaMinima = ahora.toISOString().slice(0, 16);
+    
+    // Asignar el límite mínimo
+    inputFecha.min = fechaMinima;
+
+    calendarioTurno = flatpickr("#turno-fecha-hora", {
+        enableTime: true,           // Permitir elegir hora
+        dateFormat: "Y-m-d H:i",    // Formato compatible con tu base de datos
+        locale: "es",               // Idioma español
+        minDate: "today",           // Bloquear fechas del pasado
+        time_24hr: true,            // Reloj de 24 horas (sin AM/PM)
+        minuteIncrement: 15         // Que los minutos salten de 15 en 15 (opcional)
+    });
 }
 
 function cerrarFormularioTurno() {

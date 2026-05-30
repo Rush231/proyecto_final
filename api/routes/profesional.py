@@ -5,27 +5,24 @@ from api.db.db_config import mysql
 from api.utils.seguridad import token_requerido
 from api.models.Profesional import Profesional
 
-@app.route('/profesional', methods=['POST'])
-def crear_profesional():
-    datos = request.json
-    sql = "INSERT INTO Profesional (nombre, especialidad, negocio_id) VALUES (%s, %s, %s)"
-    
-    conn = None
+@app.route('/profesional', methods=['POST', 'OPTIONS'])
+@token_requerido
+def crear_profesional(usuario_actual):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
     try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({"error": "Error de conexión"}), 500
-            
-        cursor = conn.cursor()
-        cursor.execute(sql, (datos['nombre'], datos.get('especialidad'), datos['negocio_id']))
-        conn.commit()
-        return jsonify({"mensaje": "Profesional creado", "id": cursor.lastrowid}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        datos = request.json
+        datos['negocio_id'] = usuario_actual['negocio_id']
+        
+        # Llamamos al modelo que arreglamos en el Paso 1
+        nuevo_id = Profesional.registrar(datos)
+        
+        return jsonify({"mensaje": "Profesional creado exitosamente", "id": nuevo_id}), 201
+        
+    except Exception as e:
+        print(f"Error al crear profesional: {str(e)}")
+        return jsonify({"error": "No se pudo crear el profesional. Revisa los datos."}), 500
 
 
 
@@ -71,23 +68,33 @@ def get_turnos_profesional(usuario_actual, profesional_id):
             conn.close()
 
 
-@app.route('/profesional/<int:id>', methods=['PUT', 'DELETE', 'OPTIONS'])
+@app.route('/profesional/<int:id>', methods=['PUT', 'OPTIONS'])
 @token_requerido
-def manejar_profesional_existente(usuario_actual, id):
+def actualizar_profesional(usuario_actual, id):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
         
     try:
-        if request.method == 'PUT':
-            datos = request.json
-            datos['negocio_id'] = usuario_actual['negocio_id']
-            Profesional.actualizar(id, datos)
-            return jsonify({"message": "Profesional actualizado exitosamente"}), 200
-            
-        elif request.method == 'DELETE':
-            Profesional.eliminar(id, usuario_actual['negocio_id'])
-            return jsonify({"message": "Profesional eliminado con éxito"}), 200
-            
+        datos = request.json
+        datos['negocio_id'] = usuario_actual['negocio_id']
+        Profesional.actualizar(id, datos)
+        return jsonify({"message": "Profesional actualizado exitosamente"}), 200
+        
     except Exception as e:
-        print(f"Error en profesional {id}: {str(e)}")
+        print(f"Error al actualizar profesional {id}: {str(e)}")
+        return jsonify({"error": "Error interno al actualizar el profesional"}), 500
+
+
+@app.route('/profesional/<int:id>', methods=['DELETE', 'OPTIONS'])
+@token_requerido
+def eliminar_profesional(usuario_actual, id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
+    try:
+        Profesional.eliminar(id, usuario_actual['negocio_id'])
+        return jsonify({"message": "Profesional eliminado con éxito"}), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar profesional {id}: {str(e)}")
         return jsonify({"error": "Error interno o el profesional tiene turnos asociados"}), 500

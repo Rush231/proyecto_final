@@ -14,8 +14,12 @@ class Cliente:
     def obtener_por_negocio(negocio_id):
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
-        sql = "SELECT id, name AS nombre FROM Cliente" 
-        cursor.execute(sql)
+        sql = """
+            SELECT id, name AS nombre, email AS correo, telefono 
+            FROM Cliente 
+            WHERE negocio_id = %s
+        """ 
+        cursor.execute(sql, (negocio_id,))  
         clientes = cursor.fetchall()
         cursor.close()
         connection.close()
@@ -27,7 +31,7 @@ class Cliente:
         
         sql = """
             UPDATE Cliente 
-            SET name = %s, correo = %s, telefono = %s 
+            SET name = %s, email = %s, telefono = %s 
             WHERE id = %s AND negocio_id = %s
         """
         cursor.execute(sql, (

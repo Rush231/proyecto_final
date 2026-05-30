@@ -19,7 +19,7 @@ class Negocio:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         
-        sql = "SELECT id, nombre, tipo, telefono, hora_apertura, hora_cierre FROM Negocio WHERE id = %s"
+        sql = "SELECT id, name AS nombre, tipo, telefono, hora_apertura, hora_cierre FROM Negocio WHERE id = %s"
         cursor.execute(sql, (negocio_id,))
         negocio = cursor.fetchone()
         
@@ -42,7 +42,7 @@ class Negocio:
         cursor = connection.cursor()
         
         sql = """UPDATE Negocio 
-                 SET nombre = %s, telefono = %s, hora_apertura = %s, hora_cierre = %s 
+                 SET name = %s, telefono = %s, hora_apertura = %s, hora_cierre = %s 
                  WHERE id = %s"""
                  
         cursor.execute(sql, (

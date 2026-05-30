@@ -19,50 +19,42 @@ def get_todos_clientes(usuario_actual):
     except Exception as e:
          return jsonify({"error": str(e)}), 400
 
-@app.route('/crear', methods=['POST'])
+@app.route('/cliente', methods=['POST', 'OPTIONS'])
 @token_requerido
 def crear_cliente(usuario_actual):
-    datos = request.json
-    
-    datos['negocio_id'] = usuario_actual['negocio_id']
-    
-    es_valido, mensaje = Cliente.validar(datos)
-    if not es_valido:
-        return jsonify({"error": mensaje}), 400
-    
-    try:
-        exito, resultado = Cliente.crear(datos)
-        if exito:
-            return jsonify(resultado), 201
-        else:
-            return jsonify({"error": resultado}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/eliminar/<int:id>', methods=['DELETE', 'OPTIONS'])
-@token_requerido
-def eliminar_cliente(usuario_actual, id):
-
+    # 1. Autorizar la solicitud de seguridad del navegador (CORS Preflight)
     if request.method == 'OPTIONS':
         return jsonify({}), 200
         
+    datos = request.json
+    
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
         
-        sql = "DELETE FROM Cliente WHERE id = %s AND negocio_id = %s"
-        cursor.execute(sql, (id, usuario_actual['negocio_id']))
+        # 2. Insertar directamente usando las columnas correctas de tu base de datos
+        sql = """
+            INSERT INTO Cliente (name, email, telefono, negocio_id) 
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(sql, (
+            datos['nombre'], 
+            datos.get('correo', ''), 
+            datos.get('telefono', ''), 
+            usuario_actual['negocio_id']
+        ))
         
         connection.commit()
+        nuevo_id = cursor.lastrowid
+        
         cursor.close()
         connection.close()
         
-        return jsonify({"message": "Cliente eliminado con éxito"}), 200
+        return jsonify({"message": "Cliente creado exitosamente", "id": nuevo_id}), 201
         
     except Exception as e:
-
-        print(f"Error interno al eliminar cliente: {str(e)}")
-        return jsonify({"error": "No se puede eliminar el cliente porque tiene turnos asignados u otro error interno."}), 500
+        print(f"Error al crear cliente: {str(e)}")
+        return jsonify({"error": str(e)}), 500
     
     
 @app.route('/cliente/<int:id>', methods=['PUT', 'OPTIONS'])
