@@ -9,15 +9,19 @@ import datetime
 
 @app.route('/usuario', methods=['POST'])
 def crear_usuario():
-    """Crea un nuevo usuario (dueño de negocio) con contraseña hasheada."""
-    datos = request.json
-    
-    # Datos del formulario
-    nombre = datos['nombre']
-    email = datos['email']
-    contrasena_plana = datos['contrasena'] 
-    negocio_id = datos['negocio_id']
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
 
+    datos = request.json
+    print(f"DEBUG: Datos recibidos del frontend: {datos}")  
+    try:
+        # Delegamos la persistencia al Modelo de forma limpia
+        nuevo_id = Usuario.registrar(datos)
+        return jsonify({"mensaje": "Usuario creado exitosamente", "id": nuevo_id}), 201
+        
+    except Exception as e:
+        print(f"Error al crear usuario: {str(e)}")
+        return jsonify({"error": "No se pudo crear el usuario. Revisa los datos."}), 500
 
 @app.route('/usuario/<int:usuario_id>', methods=['GET'])
 def obtener_usuario(usuario_id):

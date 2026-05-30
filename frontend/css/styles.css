@@ -269,4 +269,112 @@ select:focus {
     form > div[style*="display: flex"] .form-group {
         width: 100% !important;
     }
+
+    /* Contenedor principal */
+.servicios-selector {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    transition: border-color 0.2s;
+}
+
+.servicios-selector:hover {
+    border-color: #adb5bd;
+}
+
+/* El Label como "Tarjeta" pequeña */
+.servicio-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.servicio-item:hover {
+    background: #e9ecef;
+}
+
+/* Ocultar el checkbox nativo y poner algo más estilizado */
+.servicio-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #4a90e2; /* Color principal de tu app */
+    cursor: pointer;
+}
+
+/* Contenedor con scroll elegante */
+.servicios-scroll {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 8px;
+    background: #fff;
+}
+
+/* Estilo para cada item: se ve como una fila clicable */
+.servicio-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.servicio-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Mejora el checkbox para que combine con la marca */
+.servicio-checkbox {
+    margin-right: 12px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+
+/* Contenedor del selector */
+.servicios-selector-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+/* El estilo del "botón" de servicio */
+.servicio-tag {
+    cursor: pointer;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 20px; /* Forma redondeada (tipo pastilla) */
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+/* Estilo cuando el checkbox interno está marcado */
+.servicio-tag-checkbox:checked + .servicio-tag {
+    background: #4a90e2; /* Color principal */
+    color: white;
+    border-color: #357abd;
+    box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
+}
+
+/* Ocultar el checkbox real que es feo */
+.servicio-tag-checkbox {
+    display: none;
+}
 }

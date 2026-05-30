@@ -1,5 +1,6 @@
 from api.db.db_config import get_db_connection
 from flask import jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 class Usuario:
 
     schema = {
@@ -95,7 +96,7 @@ class Usuario:
         
 
     def registrar(self, cursor):
-        sql = "INSERT INTO Usuario (nombre, email, contrasena) VALUES (%s, %s, %s)"
+        sql = "INSERT INTO Usuario (name, email, password) VALUES (%s, %s, %s)"
         cursor.execute(sql, (self.nombre, self.email, self.password))
         self.id = cursor.lastrowid
         return self.id
@@ -113,7 +114,7 @@ class Usuario:
         connection.close()
 
         
-        if user_data and user_data['password'] == password_ingresada:
+        if user_data and check_password_hash(user_data['password'], password_ingresada):
             return {
                 "id": user_data['id'],
                 "name": user_data['name'],
@@ -129,3 +130,30 @@ class Usuario:
             "email": self.email
 
         }
+    @classmethod
+    def registrar(cls, datos):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        try:
+            nombre = datos['name']
+            email = datos['email']
+            password = datos['password']
+            negocio_id = datos.get('negocio_id', None)
+            password_hash = generate_password_hash(datos['password'])
+            sql_negocio = "INSERT INTO Negocio (name, tipo) VALUES (%s, %s)"
+            cursor.execute(sql_negocio, (datos['nombre_de_negocio'], 'General'))
+            negocio_id = cursor.lastrowid
+    
+    #  Crear el usuario asociándolo a ese negocio
+            sql_usuario = "INSERT INTO Usuario (name, email, password, negocio_id) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql_usuario, (datos['name'], datos['email'], password_hash, negocio_id))
+            
+            
+            connection.commit()
+            return cursor.lastrowid
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()

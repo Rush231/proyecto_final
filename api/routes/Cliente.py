@@ -22,39 +22,66 @@ def get_todos_clientes(usuario_actual):
 @app.route('/cliente', methods=['POST', 'OPTIONS'])
 @token_requerido
 def crear_cliente(usuario_actual):
-    # 1. Autorizar la solicitud de seguridad del navegador (CORS Preflight)
+    # 1. Manejo de CORS preflight
     if request.method == 'OPTIONS':
-        return jsonify({}), 200
-        
-    datos = request.json
+        return '', 200
+
+    # 2. Inicialización segura de variables
+    connection = None
+    cursor = None
     
     try:
+        datos = request.json
+        # Validación básica de datos
+        if not datos or 'nombre' not in datos or 'correo' not in datos:
+            return jsonify({"error": "Datos incompletos"}), 400
+
+        # Obtener negocio_id desde el token
+        negocio_id = usuario_actual.get('negocio_id')
+        if not negocio_id:
+            return jsonify({"error": "Error de autenticación: negocio no encontrado"}), 401
+
+        # 3. Operación con la base de datos
         connection = get_db_connection()
         cursor = connection.cursor()
         
-        # 2. Insertar directamente usando las columnas correctas de tu base de datos
-        sql = """
-            INSERT INTO Cliente (name, email, telefono, negocio_id) 
-            VALUES (%s, %s, %s, %s)
-        """
+        sql = "INSERT INTO Cliente (name, email, telefono, negocio_id) VALUES (%s, %s, %s, %s)"
         cursor.execute(sql, (
             datos['nombre'], 
-            datos.get('correo', ''), 
+            datos['correo'], 
             datos.get('telefono', ''), 
-            usuario_actual['negocio_id']
+            negocio_id
         ))
-        
         connection.commit()
-        nuevo_id = cursor.lastrowid
         
-        cursor.close()
-        connection.close()
+        return jsonify({"message": "Cliente creado exitosamente"}), 201
+
+    except mysql.connector.Error as err:
+        # Manejo específico de errores de BD (ej. duplicados)
+        if connection:
+            connection.rollback()
         
-        return jsonify({"message": "Cliente creado exitosamente", "id": nuevo_id}), 201
+        if err.errno == 1062:
+            return jsonify({"error": "El correo ya está registrado en este negocio"}), 409
         
+        print(f"Error de base de datos: {err}")
+        return jsonify({"error": "Error interno de base de datos"}), 500
+
     except Exception as e:
-        print(f"Error al crear cliente: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        # Manejo de errores generales
+        if connection:
+            connection.rollback()
+        print(f"Error técnico inesperado: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+    finally:
+        # 4. Cierre garantizado de conexiones (esto evita bloqueos futuros)
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+    
     
     
 @app.route('/cliente/<int:id>', methods=['PUT', 'OPTIONS'])

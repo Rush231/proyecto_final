@@ -45,3 +45,24 @@ class Cliente:
         connection.commit()
         cursor.close()
         connection.close()
+
+    @staticmethod
+    def guardar_con_negocio(datos, negocio_id):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+    
+        sql = "INSERT INTO Cliente (name, email, telefono, negocio_id) VALUES (%s, %s, %s, %s)"
+    
+        # Aquí insertamos explícitamente
+        cursor.execute(sql, (
+            datos.get('nombre'), 
+            datos.get('correo', ''), 
+            datos.get('telefono', ''), 
+            negocio_id  # <--- ID del token, nunca del formulario
+        ))
+    
+        connection.commit()
+        nuevo_id = cursor.lastrowid
+        cursor.close()
+        connection.close()
+        return nuevo_id

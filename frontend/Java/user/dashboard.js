@@ -129,27 +129,49 @@ async function cargarReportes(criterio = 'profesional') {
 }
 
 
-function ocultarTodasLasSecciones() {
-    const secciones = document.querySelectorAll('.view-section');
-    secciones.forEach(seccion => {
-        seccion.classList.add('hidden'); // Les pone a todos el candado de oculto
-    });
-}
+    function ocultarTodasLasSecciones() {
+        const secciones = document.querySelectorAll('.view-section');
+        secciones.forEach(seccion => {
+            seccion.classList.add('hidden'); // Les pone a todos el candado de oculto
+        });
+    }
 
-document.querySelectorAll('#nav-links a').forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // 1. PRIMERO: Ocultamos todo lo que existe
-        ocultarTodasLasSecciones();
-        
-        // 2. DESPUÉS: Quitamos la clase hidden solo al que queremos ver
-        const targetId = e.target.getAttribute('data-target');
-        const seccionAMostrar = document.getElementById(targetId);
-        
-        if (seccionAMostrar) {
-            seccionAMostrar.classList.remove('hidden');
-        }
-    });
+    document.querySelectorAll('#nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // 1. PRIMERO: Ocultamos todo lo que existe
+            ocultarTodasLasSecciones();
+            
+            // 2. DESPUÉS: Quitamos la clase hidden solo al que queremos ver
+            const targetId = e.target.getAttribute('data-target');
+            const seccionAMostrar = document.getElementById(targetId);
+            
+            if (seccionAMostrar) {
+                seccionAMostrar.classList.remove('hidden');
+            }
+        });
+    function renderizarServiciosComoTags(servicios) {
+        const contenedor = document.getElementById('contenedor-servicios-tags');
+        contenedor.innerHTML = ''; 
+
+        servicios.forEach(s => {
+            // Creamos un ID único para el checkbox
+            const checkboxId = `servicio-${s.id}`;
+            
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `
+                <input type="checkbox" id="${checkboxId}" value="${s.id}" class="servicio-tag-checkbox">
+                <label for="${checkboxId}" class="servicio-tag">
+                    ${s.nombre} <small>(${s.duracion} min)</small>
+                </label>
+            `;
+            
+            contenedor.appendChild(wrapper.firstElementChild);
+            contenedor.appendChild(wrapper.lastElementChild);
+        });
+    }
+
+    
 
 });

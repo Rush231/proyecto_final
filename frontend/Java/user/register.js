@@ -60,4 +60,12 @@ function userRegister(){
             submitBtn.disabled = false;
             if(spinner) spinner.style.display = 'none';
         });
+
+        // En tu register.js, el objeto debe tener la misma llave que el backend espera
+    const datos = {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    nombre_de_negocio: document.getElementById('negocio_input').value // ¡Esto es lo que falta!
+};
 }
