@@ -174,22 +174,4 @@ async function cargarProfesionales() {
         console.error("Error cargando tabla:", error);
     }
 
-    function renderizarCheckboxServicios(servicios) {
-    const contenedor = document.getElementById('contenedor-servicios-checkbox');
-    contenedor.innerHTML = ''; // Limpiamos el "Cargando..."
-
-    servicios.forEach(s => {
-        const label = document.createElement('label');
-        label.className = 'servicio-item';
-        
-        label.innerHTML = `
-            <input type="checkbox" class="servicio-checkbox" value="${s.id}">
-            <span>${s.nombre} (${s.duracion} min)</span>
-        `;
-        
-        contenedor.appendChild(label);
-    });
-}
-}
-
-document.addEventListener('DOMContentLoaded', cargarProfesionales);
+document.addEventListener('DOMContentLoaded', cargarProfesionales);}
