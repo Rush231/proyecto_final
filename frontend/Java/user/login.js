@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Limpiar datos de sesiones anteriores
+    // Limpia datos de sesiones anteriores
     localStorage.removeItem("token");
     localStorage.removeItem("username");
     localStorage.removeItem("id");

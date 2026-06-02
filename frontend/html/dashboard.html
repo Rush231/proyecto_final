@@ -6,6 +6,7 @@
     <title>Panel Administrativo - Sistema de Turnos</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -116,6 +117,19 @@
         </thead>
         <tbody></tbody>
     </table>
+
+            <div id="contenedor-ticket-oculto" style="position: absolute; left: -9999px; top: 0;">
+                <div id="ticket-turno" style="padding: 30px; font-family: Arial, sans-serif; color: #333; background: white; width: 400px; border: 1px solid #ddd; border-radius: 8px;">   
+            <h2 style="text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Comprobante de Turno</h2>
+            <p><strong>Número de Turno:</strong> <span id="pdf-id"></span></p>
+            <p><strong>Cliente:</strong> <span id="pdf-cliente"></span></p>
+            <p><strong>Servicio:</strong> <span id="pdf-servicio"></span></p>
+            <p><strong>Fecha y Hora:</strong> <span id="pdf-fecha"></span></p>
+            <p><strong>Estado:</strong> <span id="pdf-estado"></span></p>
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 20px 0;">
+            <p style="text-align: center; font-size: 12px; color: #777;">¡Gracias por confiar en nosotros!</p>
+        </div>
+    </div>
 </section>
 
 <section id="clientes" class="content-section hidden">
@@ -140,18 +154,19 @@
                         <label>Teléfono:</label>
                         <input type="text" id="cliente-telefono">
                     </div>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button type="submit" class="btn-primary" style="margin: 0;">Guardar Cliente</button>
-                        <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="cerrarFormularioCliente()">Cancelar</button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Guardar</button>
+                        <button type="button" class="btn-secondary" onclick="cerrarFormulario()">Cancelar</button>
                     </div>
+                    
                 </form>
             </div>
 
             <table class="data-table" style="margin-top: 20px; width: 100%;">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo</th>
                         <th>Teléfono</th>
                         <th>Acciones</th>
                     </tr>
@@ -210,10 +225,11 @@
                     <div id="contenedor-servicios-checkbox"></div>
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button type="submit" class="btn-primary" style="margin: 0;">Guardar Profesional</button>
-                        <button type="button" class="btn-secondary" style="margin: 0; width: 100%;" onclick="cerrarFormularioProfesional()">Cancelar</button>
-                    </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Guardar</button>
+                            <button type="button" class="btn-secondary" onclick="cerrarFormulario()">Cancelar</button>
+                        </div>
+                       
                 </form>
             </div>
 
@@ -234,16 +250,16 @@
     <h3 style="margin-bottom: 15px;">Gestión de Servicios</h3>
     <button class="btn-primary" style="margin-bottom: 20px;" onclick="mostrarFormularioServicio()">+ Nuevo Servicio</button>
 
-    <div id="form-servicio-container" class="container hidden" style="background-color: #f8f9fa; border: 1px solid #ddd; margin-bottom: 20px;">
-        <h4 style="margin-bottom: 15px;">Crear Nuevo Servicio</h4>
-        
-        <form id="form-crear-servicio" onsubmit="crearServicio(event)">
-            <input type="hidden" id="servicio-id"> 
-            
-            <div class="form-group">
-                <label>Nombre del Servicio:</label>
-                <input type="text" id="servicio-nombre" placeholder="Ej. Consulta, Mantenimiento..." required>
-            </div>
+            <div id="form-servicio-container" class="container hidden">
+                <h4 id="titulo-formulario" style="margin-bottom: 15px;">Crear Nuevo Servicio</h4>
+                
+                <form id="form-crear-servicio" onsubmit="crearServicio(event)">
+                    <input type="hidden" id="input-servicio-id" value=""> 
+                    
+                    <div class="form-group">
+                        <label>Nombre del Servicio:</label>
+                        <input type="text" id="servicio-nombre" required>
+                    </div>
             
             <div class="form-group">
                 <label>Duración (en minutos):</label>

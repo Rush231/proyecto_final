@@ -401,3 +401,22 @@ input.servicio-tag-checkbox {
     display: none !important;
 }
 
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Botones con tamaño uniforme */
+.form-actions button {
+    flex: 1; /* Esto hace que ambos ocupen exactamente el 50% del ancho */
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+}
+
+.btn-primary { background-color: #3498db; color: white; }
+.btn-secondary { background-color: #95a5a6; color: white; }

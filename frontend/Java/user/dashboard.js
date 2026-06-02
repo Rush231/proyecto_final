@@ -140,10 +140,9 @@ async function cargarReportes(criterio = 'profesional') {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // 1. PRIMERO: Ocultamos todo lo que existe
             ocultarTodasLasSecciones();
             
-            // 2. DESPUÉS: Quitamos la clase hidden solo al que queremos ver
+            //  Quitamos la clase hidden solo al que queremos ver
             const targetId = e.target.getAttribute('data-target');
             const seccionAMostrar = document.getElementById(targetId);
             
@@ -156,7 +155,7 @@ async function cargarReportes(criterio = 'profesional') {
         contenedor.innerHTML = ''; 
 
         servicios.forEach(s => {
-            // Creamos un ID único para el checkbox
+            // creamos un ID unico para el checkbox
             const checkboxId = `servicio-${s.id}`;
             
             const wrapper = document.createElement('div');

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    cargarTurnos();
+    turnos();
     cargarDatosFormularioTurno();
 });
 
@@ -65,6 +65,7 @@ async function cargarDatosFormularioTurno() {
         console.error(error);
     }
 }
+
 let calendarioTurno = null;
 function mostrarFormularioTurno() {
     document.getElementById('form-turno-container').classList.remove('hidden');
@@ -134,7 +135,7 @@ async function crearTurno(event) {
         await handleResponse(response);
         
         alert("Turno asignado correctamente.");
-        cargarTurnos();
+        turnos();
         cerrarFormularioTurno();
 
     } catch (error) {
@@ -142,37 +143,55 @@ async function crearTurno(event) {
     }
 }
 
-async function cargarTurnos() {
+async function turnos() {
     const token = localStorage.getItem("token");
+    console.log("Intentando cargar turnos..."); // DEBUG
     try {
         const response = await fetch(`${apiURL}/turnos`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const turnos = await handleResponse(response);
+        
+        // Verifica si la respuesta es ok antes de procesar
+        if (!response.ok) {
+            const err = await response.json();
+            console.error("Error del servidor:", err);
+            return;
+        }
+
+        const turnos = await response.json();
         
         const tbody = document.querySelector('#turnos .data-table tbody');
         if (tbody) {
             tbody.innerHTML = '';
             turnos.forEach(t => {
+                let fechaFormateada = t.fecha_hora || 'Sin fecha';
                 let botonesAccion = '';
                 const estadoActual = t.estado || 'Pendiente';
                 
                 if (estadoActual === 'Pendiente') {
                     botonesAccion = `
-                        <button class="btn-primary" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
-                            onclick="cambiarEstadoTurno(${t.id}, 'Completado')">
-                            Completado
-                        </button>
-                        <button class="btn-danger" style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" 
-                            onclick="cambiarEstadoTurno(${t.id}, 'Ausente')">
-                            Ausente
+                            <button class="btn-primary" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
+                                onclick="cambiarEstadoTurno(${t.id}, 'Completado')">
+                                Completado
+                            </button>
+                            <button class="btn-danger" style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
+                                onclick="cambiarEstadoTurno(${t.id}, 'Ausente')">
+                                Ausente
+                            </button>
+                        `;
+                    } else {
+                        botonesAccion = `<span style="color: gray; font-style: italic; margin-right: 10px;">Turno ${estadoActual}</span>`;
+                    }
+                    
+
+                    const clienteSeguro = (t.cliente_nombre || t.cliente || '-').replace(/'/g, "\\'");
+                    const servicioSeguro = (t.servicio_nombre || t.servicio || '-').replace(/'/g, "\\'");
+                    botonesAccion += `
+                        <button class="btn-primary" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" 
+                            onclick="generarPDFTurno(${t.id}, '${clienteSeguro}', '${servicioSeguro}', '${fechaFormateada}', '${estadoActual}')">
+                            Descargar PDF
                         </button>
                     `;
-                } else {
-                    botonesAccion = `<span style="color: gray; font-style: italic;">Turno ${estadoActual}</span>`;
-                }
-
-                let fechaFormateada = t.fecha_hora || '-';
 
                 tbody.innerHTML += `
                     <tr>
@@ -186,7 +205,7 @@ async function cargarTurnos() {
             });
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error de conexión:", error); // DEBUG
     }
 }
 
@@ -207,9 +226,34 @@ async function cambiarEstadoTurno(id, nuevoEstado) {
         });
         
         await handleResponse(response);
-        cargarTurnos(); 
+        turnos(); 
         
     } catch (error) {
         console.error(error);
-    }
-}
+    }   
+}  
+
+    window.generarPDFTurno = function(id, cliente, servicio, fechaHora, estado) {
+    document.getElementById('pdf-id').innerText = id;
+    document.getElementById('pdf-cliente').innerText = cliente;
+    document.getElementById('pdf-servicio').innerText = servicio;
+    document.getElementById('pdf-fecha').innerText = fechaHora;
+    document.getElementById('pdf-estado').innerText = estado;
+
+    // 2. Seleccionar elemento
+    const elemento = document.getElementById('ticket-turno');
+    
+    //  el elemento siempre está "ahí" pero invisible para el usuario.
+
+    const opciones = {
+        margin:       10,
+        filename:     `Turno_${cliente.replace(/\s+/g, '_')}_${id}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // 3. Generar PDF
+    html2pdf().set(opciones).from(elemento).save();
+};
+
