@@ -1,6 +1,9 @@
+from multiprocessing import connection
+
 from api.db.db_config import get_db_connection
 from flask import jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+
 class Usuario:
 
     schema = {
@@ -9,28 +12,38 @@ class Usuario:
         "password": str,
         "negocio_id": int,
         "id": int}
-    def __init__(self, id, nombre, email):
-        self.id = id
-        self.nombre = nombre
-        self.email = email
+    def __init__(self, fila):
+        self.id = fila[0]
+        self.nombre = fila[1]
+        self.email = fila[2]
         pass
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nombre": self.nombre,
+            "email": self.email
+        }
+    
     @classmethod
     def get_usuario_por_id(cls, id):
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.execute("SELECT id, nombre, email FROM Usuario WHERE id = %s", (id,))
+        cursor.execute("SELECT id, name, email FROM Usuario WHERE id = %s", (id,))
         datos = cursor.fetchone()
         cursor.close()
         connection.close()
-        if datos is not None:
-            return Usuario(datos).to_json()
         
+        if datos is not None:
+            usuario_diccionario = Usuario(datos).to_dict()
+            print("DEBUG - Diccionario listo para enviar:", usuario_diccionario) 
+        return usuario_diccionario
 
     @classmethod
     def get_todos_los_usuarios(cls):
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor.execute("SELECT id, nombre, email FROM Usuario")
+        cursor.execute("SELECT id, name, email FROM Usuario")
         filas = cursor.fetchall()
         cursor.close()
         connection.close()
@@ -48,12 +61,6 @@ class Usuario:
             if type(datos[key]) != cls.schema[key]:
                 return False, f"Tipo inválido para el campo: {key}"
         
-
-    def __init__(self, fila):
-        self.__id = fila['0']
-        self.__nombre = fila['1']
-        self.__email = fila['2']
-        self.__password = fila['3'] 
 
     @classmethod 
     def post_usuario(cls, datos):

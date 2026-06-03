@@ -53,12 +53,12 @@ class Cliente:
     
         sql = "INSERT INTO Cliente (name, email, telefono, negocio_id) VALUES (%s, %s, %s, %s)"
     
-        # Aquí insertamos explícitamente
+        
         cursor.execute(sql, (
             datos.get('nombre'), 
             datos.get('correo', ''), 
             datos.get('telefono', ''), 
-            negocio_id  # <--- ID del token, nunca del formulario
+            negocio_id  #  ID del token
         ))
     
         connection.commit()

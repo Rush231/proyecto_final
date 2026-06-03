@@ -45,7 +45,7 @@ function userLogin() {
         }
     };
 
-    fetch(apiURL + '/login', requestOptions)
+    fetch(apiURL + '/usuario/login', requestOptions)
         .then(response => handleResponse(response))
         .then(response => {
             if (response.token) {

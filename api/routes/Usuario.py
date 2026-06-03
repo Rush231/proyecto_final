@@ -33,7 +33,7 @@ def obtener_usuario(usuario_id):
         return jsonify({"error": "Usuario no encontrado"}), 404
     
 
-@app.route('/login', methods=['POST', 'OPTIONS'])
+@app.route('/usuario/login', methods=['POST', 'OPTIONS'])
 def login_usuario():
     if request.method == 'OPTIONS':
         return jsonify({}), 200

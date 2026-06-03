@@ -13,8 +13,6 @@ class Servicio:
         return self.id
     
 
-    from api.db.db_config import get_db_connection
-
     @staticmethod
     def obtener_por_negocio(negocio_id):
         connection = get_db_connection()

@@ -40,12 +40,12 @@ class Profesional:
         cursor = connection.cursor()
         
         try:
-            # 1. Insertar datos básicos del Profesional
+            #  Insertar datos básicos del Profesional
             sql_prof = "INSERT INTO Profesional (name, especialidad, negocio_id) VALUES (%s, %s, %s)"
             cursor.execute(sql_prof, (datos['nombre'], datos['especialidad'], datos['negocio_id']))
             nuevo_profesional_id = cursor.lastrowid
             
-            # 2. Insertar los días y horarios (Disponibilidad)
+            #  Insertar los días y horarios (Disponibilidad)
             sql_horario = """
                 INSERT INTO Disponibilidad (profesional_id, dia_semana, hora_inicio, hora_fin) 
                 VALUES (%s, %s, %s, %s)
@@ -53,7 +53,7 @@ class Profesional:
             for dia in datos.get('dias_trabajo', []):
                 cursor.execute(sql_horario, (nuevo_profesional_id, dia, datos['hora_inicio'], datos['hora_fin']))
 
-            # 3. Insertar los servicios vinculados (Profesional_Servicio)
+            #  Insertar los servicios vinculados (Profesional_Servicio)
             sql_servicio = "INSERT INTO Profesional_Servicio (profesional_id, servicio_id) VALUES (%s, %s)"
             for servicio_id in datos.get('servicios', []):
                 cursor.execute(sql_servicio, (nuevo_profesional_id, servicio_id))
@@ -74,17 +74,17 @@ class Profesional:
         cursor = connection.cursor()
         
         try:
-            # 1. Actualizamos el perfil básico
+            #  Actualizamos el perfil básico
             sql_prof = "UPDATE Profesional SET name = %s, especialidad = %s WHERE id = %s AND negocio_id = %s"
             cursor.execute(sql_prof, (datos['nombre'], datos['especialidad'], id, datos['negocio_id']))
             
-            # 2. Actualizamos los servicios (borramos los viejos e insertamos los nuevos)
+            # Actualizamos los servicios 
             cursor.execute("DELETE FROM Profesional_Servicio WHERE profesional_id = %s", (id,))
             sql_servicio = "INSERT INTO Profesional_Servicio (profesional_id, servicio_id) VALUES (%s, %s)"
             for servicio_id in datos.get('servicios', []):
                 cursor.execute(sql_servicio, (id, servicio_id))
                 
-            # 3. Actualizamos los horarios (borramos los viejos e insertamos los nuevos)
+            #  Actualizamos los horarios 
             cursor.execute("DELETE FROM Disponibilidad WHERE profesional_id = %s", (id,))
             sql_horario = "INSERT INTO Disponibilidad (profesional_id, dia_semana, hora_inicio, hora_fin) VALUES (%s, %s, %s, %s)"
             for dia in datos.get('dias_trabajo', []):

@@ -26,7 +26,7 @@ class Negocio:
         cursor.close()
         connection.close()
         
-        # MySQL suele devolver los campos TIME como objetos timedelta. 
+        
         # Los convertimos a texto para que Flask pueda enviarlos como JSON.
         if negocio:
             if negocio.get('hora_apertura'):

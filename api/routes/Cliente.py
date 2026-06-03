@@ -22,11 +22,11 @@ def get_todos_clientes(usuario_actual):
 @app.route('/cliente', methods=['POST', 'OPTIONS'])
 @token_requerido
 def crear_cliente(usuario_actual):
-    # 1. Manejo de CORS preflight
+    #  Manejo de CORS preflight
     if request.method == 'OPTIONS':
         return '', 200
 
-    # 2. Inicialización segura de variables
+    #  Inicialización segura de variables
     connection = None
     cursor = None
     
@@ -41,7 +41,7 @@ def crear_cliente(usuario_actual):
         if not negocio_id:
             return jsonify({"error": "Error de autenticación: negocio no encontrado"}), 401
 
-        # 3. Operación con la base de datos
+        # Operación con la base de datos
         connection = get_db_connection()
         cursor = connection.cursor()
         
@@ -57,7 +57,7 @@ def crear_cliente(usuario_actual):
         return jsonify({"message": "Cliente creado exitosamente"}), 201
 
     except mysql.connector.Error as err:
-        # Manejo específico de errores de BD (ej. duplicados)
+        # Manejo específico de errores de BD
         if connection:
             connection.rollback()
         
@@ -75,7 +75,6 @@ def crear_cliente(usuario_actual):
         return jsonify({"error": "Error interno del servidor"}), 500
 
     finally:
-        # 4. Cierre garantizado de conexiones (esto evita bloqueos futuros)
         if cursor:
             cursor.close()
         if connection:

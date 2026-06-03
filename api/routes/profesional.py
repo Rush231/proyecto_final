@@ -15,7 +15,6 @@ def crear_profesional(usuario_actual):
         datos = request.json
         datos['negocio_id'] = usuario_actual['negocio_id']
         
-        # Llamamos al modelo que arreglamos en el Paso 1
         nuevo_id = Profesional.registrar(datos)
         
         return jsonify({"mensaje": "Profesional creado exitosamente", "id": nuevo_id}), 201
@@ -26,7 +25,6 @@ def crear_profesional(usuario_actual):
 
 
 
-#  lista los profesionales del local
 @app.route('/profesionales', methods=['GET'])
 @token_requerido
 def get_profesionales(usuario_actual):
@@ -34,7 +32,6 @@ def get_profesionales(usuario_actual):
     lista = Profesional.obtener_por_negocio(negocio_id)
     return jsonify(lista), 200
 
-# Esta ruta es para ver los turnos que tiene asignados un profesional específico
 @app.route('/turnos/profesional/<int:profesional_id>', methods=['GET'])
 @token_requerido
 def get_turnos_profesional(usuario_actual, profesional_id):

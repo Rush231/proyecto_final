@@ -56,12 +56,11 @@ function userRegister(){
             }
             messageElement.classList.add('error');
             
-            // Reactivar botón inmediatamente si hubo error
+            // Reactivar botón si hubo error
             submitBtn.disabled = false;
             if(spinner) spinner.style.display = 'none';
         });
 
-        // En tu register.js, el objeto debe tener la misma llave que el backend espera
     const datos = {
     name: document.getElementById('name').value,
     email: document.getElementById('email').value,
