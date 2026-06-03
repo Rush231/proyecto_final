@@ -34,7 +34,7 @@ function userRegister(){
         body: JSON.stringify({name , password, email })
     };
 
-    fetch(apiURL + '/crear_usuario', requestOptions)
+    fetch(apiURL + '/usuario', requestOptions)
         .then(response => handleResponse(response))
         .then(response => {
             // ÉXITO
