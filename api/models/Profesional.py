@@ -6,6 +6,9 @@ class Profesional:
     def obtener_por_negocio(negocio_id):
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM Profesional")
+        print("PYTHON VE ESTOS PROFESIONALES EN LA TABLA:", cursor.fetchall())
         
         sql = """
             SELECT 

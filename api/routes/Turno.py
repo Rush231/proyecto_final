@@ -10,7 +10,7 @@ from api.models.Turno import Turno
 @token_requerido
 def crear_turno(usuario_actual):
     if request.method == 'OPTIONS':
-        return jsonify({}), 200
+        return jsonify({}),  200
 
     try:
         datos = request.json

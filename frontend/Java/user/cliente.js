@@ -59,7 +59,7 @@ async function guardarCliente(event) {
 async function cargarClientes() {
     const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`${apiURL}/clientes`, {
+        const response = await fetch(`${apiURL}/cliente`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const clientes = await handleResponse(response);

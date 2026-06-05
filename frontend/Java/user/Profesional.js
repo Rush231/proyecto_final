@@ -37,7 +37,7 @@ function cerrarFormularioProfesional() {
 async function cargarCheckboxesServicios() {
     const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`${apiURL}/servicios`, {
+        const response = await fetch(`${apiURL}/servicio`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const servicios = await handleResponse(response);
@@ -121,7 +121,7 @@ async function eliminarProfesional(id) {
 async function cargarProfesionales() {
     const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`${apiURL}/profesionales`, {
+        const response = await fetch(`${apiURL}/profesional`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const profesionales = await handleResponse(response);
@@ -130,8 +130,8 @@ async function cargarProfesionales() {
         if(tbody) {
             tbody.innerHTML = '';
             profesionales.forEach(p => {
-                const horaInicio = p.hora_inicio ? p.hora_inicio.substring(0, 5) : null;
-                const horaFin = p.hora_fin ? p.hora_fin.substring(0, 5) : null;
+                const horaInicio = p.hora_inicio ? p.hora_inicio.padStart(8, '0').substring(0, 5) : null;
+                const horaFin = p.hora_fin ? p.hora_fin.padStart(8, '0').substring(0, 5) : null;
                 const horario = horaInicio && horaFin ? `${horaInicio} a ${horaFin}` : 'Sin horario';
                     
                 let diasFormateados = p.dias_trabajo ? String(p.dias_trabajo) : '';

@@ -67,4 +67,21 @@ function userRegister(){
     password: document.getElementById('password').value,
     nombre_de_negocio: document.getElementById('negocio_input').value // ¡Esto es lo que falta!
 };
+
+function validarRegistro(email, password) {
+    // Expresión regular básica para validar formato de correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+        alert("Por favor, ingresa un correo electrónico válido.");
+        return false;
+    }
+
+    if (password.length < 6) {
+        alert("La contraseña debe tener al menos 6 caracteres.");
+        return false;
+    }
+
+    return true;
+}
 }

@@ -15,7 +15,7 @@ document.getElementById('turno-profesional-id').addEventListener('change', async
 
     try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`${apiURL}/servicios/profesional/${profId}`, {
+        const response = await fetch(`${apiURL}/servicio/profesional/${profId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -42,7 +42,7 @@ document.getElementById('turno-profesional-id').addEventListener('change', async
 async function cargarDatosFormularioTurno() {
     const token = localStorage.getItem("token");
     try {
-        const resClientes = await fetch(`${apiURL}/clientes`, { 
+        const resClientes = await fetch(`${apiURL}/cliente`, { 
             headers: { 'Authorization': `Bearer ${token}` } 
         });
         const clientes = await handleResponse(resClientes);
@@ -52,7 +52,7 @@ async function cargarDatosFormularioTurno() {
             selectCliente.innerHTML += `<option value="${c.id}">${c.nombre || c.name}</option>`;
         });
 
-        const resProfesionales = await fetch(`${apiURL}/profesionales`, { 
+        const resProfesionales = await fetch(`${apiURL}/profesional`, { 
             headers: { 'Authorization': `Bearer ${token}` } 
         });
         const profesionales = await handleResponse(resProfesionales);

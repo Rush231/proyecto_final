@@ -5,7 +5,7 @@ from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.utils.seguridad import token_requerido
 
-@app.route('/crear_negocio', methods=['POST'])
+@app.route('/negocio', methods=['POST'])
 def crear_negocio():
     datos = request.json
     sql = "INSERT INTO Negocio (nombre, tipo) VALUES (%s, %s)"
@@ -28,7 +28,7 @@ def crear_negocio():
             conn.close()
 
 
-@app.route('/negocios', methods=['GET'])
+@app.route('/negocio', methods=['GET'])
 def get_todos_negocios():
     try:
          lista = Negocio.get_todos_negocios()
@@ -43,7 +43,6 @@ from api.utils.seguridad import token_requerido
 @app.route('/negocio/configuracion', methods=['GET'])
 @token_requerido
 def obtener_configuracion(usuario_actual):
-    # El usuario_actual se inyecta gracias al token_requerido
     negocio_id = usuario_actual['negocio_id']
     try:
         negocio = Negocio.obtener_por_id(negocio_id)

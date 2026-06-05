@@ -25,9 +25,10 @@ def crear_profesional(usuario_actual):
 
 
 
-@app.route('/profesionales', methods=['GET'])
+@app.route('/profesional', methods=['GET'])
 @token_requerido
 def get_profesionales(usuario_actual):
+    print("DATOS DEL TOKEN RECIBIDO:", usuario_actual)
     negocio_id = usuario_actual['negocio_id']
     lista = Profesional.obtener_por_negocio(negocio_id)
     return jsonify(lista), 200

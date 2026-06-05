@@ -151,7 +151,6 @@ class Usuario:
             cursor.execute(sql_negocio, (datos['nombre_de_negocio'], 'General'))
             negocio_id = cursor.lastrowid
     
-    #  Crear el usuario asociándolo a ese negocio
             sql_usuario = "INSERT INTO Usuario (name, email, password, negocio_id) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql_usuario, (datos['name'], datos['email'], password_hash, negocio_id))
             

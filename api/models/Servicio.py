@@ -18,7 +18,7 @@ class Servicio:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         
-        # CORRECCIÓN: Cambiamos 'nombre' por 'name AS nombre'
+    
         sql = "SELECT id, name AS nombre, duracion FROM Servicio WHERE negocio_id = %s"
         
         cursor.execute(sql, (negocio_id,))
@@ -61,7 +61,21 @@ class Servicio:
         finally:
             cursor.close()
             connection.close()
-
+            
+    @classmethod
+    def actualizar(cls, id, datos):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        try:
+            sql = "UPDATE Servicio SET name = %s, duracion = %s WHERE id = %s AND negocio_id = %s"
+            cursor.execute(sql, (datos['nombre'], datos['duracion'], id, datos['negocio_id']))
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()
     @classmethod
     def eliminar(cls, id, negocio_id):
         connection = get_db_connection()
@@ -80,3 +94,4 @@ class Servicio:
         finally:
             cursor.close()
             connection.close()
+    

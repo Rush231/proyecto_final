@@ -6,16 +6,29 @@ from api.models.Usuario import Usuario
 import mysql.connector
 import jwt
 import datetime
-
+import re
 @app.route('/usuario', methods=['POST'])
 def crear_usuario():
+ 
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
     datos = request.json
+
+    email = datos.get('email', '')
+    password = datos.get('password', '')
+
+
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return jsonify({"error": "Formato de correo inválido"}), 400
+
+
+
     print(f"DEBUG: Datos recibidos del frontend: {datos}")  
     try:
         # Delegamos la persistencia al Modelo de forma limpia
+        if len(password) < 6:
+            return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
         nuevo_id = Usuario.registrar(datos)
         return jsonify({"mensaje": "Usuario creado exitosamente", "id": nuevo_id}), 201
         

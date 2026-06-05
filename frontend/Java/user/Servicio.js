@@ -1,7 +1,7 @@
 function mostrarFormularioServicio() {
     document.getElementById('form-servicio-container').classList.remove('hidden');
     document.getElementById('form-crear-servicio').reset();
-    document.getElementById('servicio-id').value = ''; 
+    document.getElementById('input-servicio-id').value = ''; 
 }
 
 function cerrarFormularioServicio() {
@@ -48,7 +48,7 @@ async function crearServicio(event) {
 
 async function guardarServicio(event) {
     event.preventDefault();
-    const id = document.getElementById('servicio-id').value;
+    const id = document.getElementById('input-servicio-id').value;
     const datos = {
         nombre: document.getElementById('servicio-nombre').value,
         duracion: document.getElementById('servicio-duracion').value,
@@ -101,7 +101,7 @@ async function eliminarServicio(id) {
 async function cargarServicios() {
     const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`${apiURL}/servicios`, {
+        const response = await fetch(`${apiURL}/servicio`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const servicios = await handleResponse(response);
@@ -134,7 +134,7 @@ window.editarServicio = async function(servicioStr) {
         console.log("Editando:", s); // Mira esto en F12 para verificar que 's' tiene datos
 
         //  Obtener elementos con validación
-        const elId = document.getElementById('servicio-id');
+        const elId = document.getElementById('input-servicio-id');
         const elNombre = document.getElementById('servicio-nombre');
         const elDuracion = document.getElementById('servicio-duracion');
         const elTitulo = document.getElementById('titulo-formulario');

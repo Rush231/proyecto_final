@@ -5,7 +5,7 @@ from api.db.db_config import mysql
 from api.utils.seguridad import token_requerido
 from api.models.Servicio import Servicio
 
-@app.route('/servicios', methods=['GET', 'OPTIONS'])
+@app.route('/servicio', methods=['GET', 'OPTIONS'])
 @token_requerido
 def get_todos_los_servicios(usuario_actual):
     if request.method == 'OPTIONS':
@@ -48,7 +48,7 @@ def crear_servicio(usuario_actual):
             cursor.close()
             conn.close()
             
-@app.route('/servicios/profesional/<int:prof_id>', methods=['GET', 'OPTIONS'])
+@app.route('/servicio/profesional/<int:prof_id>', methods=['GET', 'OPTIONS'])
 @token_requerido
 def servicios_por_profesional(usuario_actual, prof_id):
     if request.method == 'OPTIONS':
@@ -58,7 +58,7 @@ def servicios_por_profesional(usuario_actual, prof_id):
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         
-        # Unimos la tabla de Servicio con la tabla intermedia
+
         sql = """
             SELECT s.id, s.name AS nombre, s.duracion 
             FROM Servicio s
@@ -90,3 +90,20 @@ def eliminar_servicio(usuario_actual, id):
     except Exception as e:
         print(f"Error al eliminar servicio: {str(e)}")
         return jsonify({"error": "No se puede eliminar. Verifique que no tenga turnos activos."}), 500
+    
+@app.route('/servicio/<int:id>', methods=['PUT', 'OPTIONS'])
+@token_requerido
+def actualizar_servicio(usuario_actual, id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
+    try:
+        datos = request.json
+        print("DATOS RECIBIDOS EN FLASK:", datos)
+        datos['negocio_id'] = usuario_actual['negocio_id']
+        Servicio.actualizar(id, datos)
+        return jsonify({"message": "Servicio actualizado exitosamente"}), 200
+        
+    except Exception as e:
+        print(f"Error al actualizar servicio {id}: {str(e)}")
+        return jsonify({"error": "Error interno al actualizar el servicio"}), 500
