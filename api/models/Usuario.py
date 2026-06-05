@@ -74,7 +74,6 @@ class Usuario:
     def put_usuario(cls, id, datos):
         connection = get_db_connection()
         cursor = connection.cursor()
-        cursor
         if not cls.validar(datos):
            raise ValueError("Datos inválidos")
         
@@ -157,6 +156,24 @@ class Usuario:
             
             connection.commit()
             return cursor.lastrowid
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()
+
+    @classmethod
+    def eliminar(cls, usuario_id):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        try:
+            sql = "DELETE FROM Usuario WHERE id = %s"
+            cursor.execute(sql, (usuario_id,))
+            connection.commit()
+            
+            # Devuelve True si se eliminó al menos una fila
+            return cursor.rowcount > 0 
         except Exception as e:
             connection.rollback()
             raise e

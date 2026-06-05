@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarDatosFormularioTurno();
 });
 
+
+let diasTrabajo = []; 
+let fechaSeleccionada = ""; 
+let horaSeleccionada = "";
+
 document.getElementById('turno-profesional-id').addEventListener('change', async function() {
     const profId = this.value;
     const selectServicio = document.getElementById('turno-servicio-id');
@@ -10,33 +15,50 @@ document.getElementById('turno-profesional-id').addEventListener('change', async
     if (!profId) {
         selectServicio.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
         selectServicio.disabled = true;
+        diasTrabajo = [];
         return;
     }
 
     try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`${apiURL}/servicio/profesional/${profId}`, {
+        
+        // Cargar servicios
+        const resServicios = await fetch(`${apiURL}/servicio/profesional/${profId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
-        const servicios = await handleResponse(response);
+        const servicios = await handleResponse(resServicios);
         
         selectServicio.innerHTML = '<option value="">Seleccione un servicio...</option>';
-        
         if (servicios.length === 0) {
             selectServicio.innerHTML = '<option value="">Este profesional no tiene servicios asignados</option>';
             selectServicio.disabled = true;
-            return;
+        } else {
+            servicios.forEach(s => {
+                selectServicio.innerHTML += `<option value="${s.id}">${s.nombre || s.name} (${s.duracion} min)</option>`;
+            });
+            selectServicio.disabled = false;
         }
 
-        servicios.forEach(s => {
-            selectServicio.innerHTML += `<option value="${s.id}">${s.nombre || s.name} (${s.duracion} min)</option>`;
-        });
-        selectServicio.disabled = false;
+        //  Obtener días de trabajo para bloquear el calendario
+        const resDias = await fetch(`${apiURL}/disponibilidad/dias/${profId}`);
+        diasTrabajo = await resDias.json();
         
+        // Si el calendario ya está abierto, actualizamos los bloqueos
+        if (calendarioTurno) {
+            calendarioTurno.set("disable", [
+                function(date) { return !diasTrabajo.includes(date.getDay()); }
+            ]);
+            calendarioTurno.clear(); 
+            document.getElementById('horarios-container').innerHTML = ''; 
+        }
+
     } catch (error) {
         console.error(error);
     }
+});
+
+document.getElementById('turno-servicio-id').addEventListener('change', function() {
+    if (fechaSeleccionada) buscarHorariosLibres();
 });
 
 async function cargarDatosFormularioTurno() {
@@ -69,32 +91,91 @@ async function cargarDatosFormularioTurno() {
 let calendarioTurno = null;
 function mostrarFormularioTurno() {
     document.getElementById('form-turno-container').classList.remove('hidden');
-    document.getElementById('form-turno-container').classList.remove('hidden');
     document.getElementById('form-crear-turno').reset();
+    fechaSeleccionada = "";
+    horaSeleccionada = "";
 
-    // Lógica para bloquear días pasados
-    const inputFecha = document.getElementById('turno-fecha-hora');
-    
-    // Obtener fecha y hora en el momento exacto en el que se abre el formulario
-    const ahora = new Date();
-    
-    // Ajustar a la zona horaria local 
-    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
-    
-    // Cortar el texto para que quede en el formato YYYY-MM-DDTHH:MM
-    const fechaMinima = ahora.toISOString().slice(0, 16);
-    
-    // Asignar el límite mínimo
-    inputFecha.min = fechaMinima;
+    // Inyectamos un contenedor para los botones de horario debajo del input de fecha
+    let containerHorarios = document.getElementById('horarios-container');
+    if (!containerHorarios) {
+        const inputFecha = document.getElementById('turno-fecha-hora');
+        containerHorarios = document.createElement('div');
+        containerHorarios.id = 'horarios-container';
+        containerHorarios.style = 'margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px;';
+        inputFecha.parentNode.insertBefore(containerHorarios, inputFecha.nextSibling);
+    }
+    containerHorarios.innerHTML = ''; // Limpiar botones anteriores
 
+    // Configurar Flatpickr SOLO PARA FECHA
     calendarioTurno = flatpickr("#turno-fecha-hora", {
-        enableTime: true,           // Permitir elegir hora
-        dateFormat: "Y-m-d H:i",    // Formato compatible con tu base de datos
-        locale: "es",               // Idioma español
-        minDate: "today",           // Bloquear fechas del pasado
-        time_24hr: true,            // Reloj de 24 horas (sin AM/PM)
-        minuteIncrement: 15         // Que los minutos salten de 15 en 15 (opcional)
+        enableTime: false,        // <-- MODIFICADO (La hora se elige con los botones)
+        dateFormat: "Y-m-d",      // <-- MODIFICADO
+        locale: "es",
+        minDate: "today",
+        disable: [
+            function(date) {
+                // Bloquear todos los días si no ha cargado la disponibilidad o no trabaja ese día
+                if (diasTrabajo.length === 0) return true;
+                return !diasTrabajo.includes(date.getDay());
+            }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+            fechaSeleccionada = dateStr;
+            horaSeleccionada = "";
+            buscarHorariosLibres();
+        }
     });
+}
+
+
+async function buscarHorariosLibres() {
+    const profId = document.getElementById('turno-profesional-id').value;
+    const servId = document.getElementById('turno-servicio-id').value;
+    const container = document.getElementById('horarios-container');
+
+    if (!profId || !servId || !fechaSeleccionada) {
+        container.innerHTML = '<span style="color:gray; font-size:14px;">Seleccione profesional y servicio primero.</span>';
+        return;
+    }
+
+    container.innerHTML = '<span style="color:gray;">Buscando horarios disponibles...</span>';
+
+    try {
+        const res = await fetch(`${apiURL}/disponibilidad/horarios/${profId}/${servId}/${fechaSeleccionada}`);
+        const horarios = await res.json();
+
+        container.innerHTML = '';
+        if (horarios.length === 0) {
+            container.innerHTML = '<span style="color:#d9534f; font-weight:bold;">Agenda llena para este día.</span>';
+            return;
+        }
+
+        // Crear botones de horas interactivos
+        horarios.forEach(hora => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.innerText = hora;
+            // Estilos directos (puedes pasarlos a tu styles.css)
+            btn.style = 'padding: 8px 15px; border: 1px solid #007bff; border-radius: 5px; cursor: pointer; background: white; color: #007bff; font-weight: bold; transition: 0.2s;';
+            
+            btn.onclick = () => {
+                
+                Array.from(container.children).forEach(b => {
+                    b.style.background = 'white';
+                    b.style.color = '#007bff';
+                });
+                
+                btn.style.background = '#007bff';
+                btn.style.color = 'white';
+                horaSeleccionada = hora;
+            };
+            container.appendChild(btn);
+        });
+
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = '<span style="color:red;">Error al cargar horarios.</span>';
+    }
 }
 
 function cerrarFormularioTurno() {
@@ -107,13 +188,19 @@ function cerrarFormularioTurno() {
 
 async function crearTurno(event) {
     event.preventDefault();
+
+    if (!fechaSeleccionada || !horaSeleccionada) {
+        alert("Por favor, seleccione un día en el calendario y haga clic en uno de los horarios disponibles.");
+        return;
+    }
+
     const token = localStorage.getItem("token");
 
     const datos = {
         cliente_id: document.getElementById('turno-cliente-id').value,
         profesional_id: document.getElementById('turno-profesional-id').value,
         servicio_id: document.getElementById('turno-servicio-id').value,
-        fecha_hora: document.getElementById('turno-fecha-hora').value
+        fecha_hora: `${fechaSeleccionada} ${horaSeleccionada}` // <-- Ahora se enviará "2026-06-15 14:30"
     };
 
     try {

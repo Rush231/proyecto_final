@@ -1,5 +1,5 @@
 function userRegister(){
-    // Obtener los valores ingresados en el formulario
+
     const name = document.getElementById('name').value;
     const password = document.getElementById('password').value;
     const email = document.getElementById('email').value;
@@ -21,7 +21,7 @@ function userRegister(){
 
     
     messageElement.innerHTML = "Registrando su cuenta...";
-    // Mostrar el spinner y desactivar el botón mientras se procesa la solicitud
+
     spinner.style.display = 'inline-block';
     submitBtn.disabled = true;
 
@@ -37,11 +37,11 @@ function userRegister(){
     fetch(apiURL + '/usuario', requestOptions)
         .then(response => handleResponse(response))
         .then(response => {
-            // ÉXITO
+            
             messageElement.innerHTML = "¡Usuario creado con éxito! Redirigiendo...";
             messageElement.classList.add('success');
             
-            //  Redirección al login después de 1.5 segundos
+            
             setTimeout(() => {
                 window.location.href = "login.html";
             }, 1500);
@@ -56,7 +56,6 @@ function userRegister(){
             }
             messageElement.classList.add('error');
             
-            // Reactivar botón si hubo error
             submitBtn.disabled = false;
             if(spinner) spinner.style.display = 'none';
         });
@@ -69,7 +68,7 @@ function userRegister(){
 };
 
 function validarRegistro(email, password) {
-    // Expresión regular básica para validar formato de correo
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     if (!emailRegex.test(email)) {

@@ -84,3 +84,21 @@ def login_usuario():
         return jsonify({"error": str(e)}), 500
     
     return jsonify({"error": "Credenciales inválidas"}), 401
+
+
+@app.route('/usuario/<int:usuario_id>', methods=['DELETE', 'OPTIONS'])
+def eliminar_usuario(usuario_id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
+    try:
+        eliminado = Usuario.eliminar(usuario_id)
+        
+        if eliminado:
+            return jsonify({"mensaje": "Usuario eliminado exitosamente"}), 200
+        else:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+            
+    except Exception as e:
+        print(f"Error al eliminar usuario: {str(e)}")
+        return jsonify({"error": "No se pudo eliminar el usuario."}), 500

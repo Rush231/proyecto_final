@@ -12,14 +12,14 @@ def get_todos_los_servicios(usuario_actual):
         return jsonify({}), 200
         
     try:
-        # Extraemos el negocio_id del token de forma segura
+        
         negocio_id = usuario_actual['negocio_id']
         lista = Servicio.obtener_por_negocio(negocio_id)
         
         return jsonify(lista), 200
         
     except Exception as e:
-        # Esto imprimirá el error real en tu terminal si falla algo
+        
         print(f"Error interno en /servicios: {str(e)}") 
         return jsonify({"error": str(e)}), 500
 

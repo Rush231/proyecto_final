@@ -58,7 +58,7 @@ class Cliente:
             datos.get('nombre'), 
             datos.get('correo', ''), 
             datos.get('telefono', ''), 
-            negocio_id  #  ID del token
+            negocio_id  
         ))
     
         connection.commit()
