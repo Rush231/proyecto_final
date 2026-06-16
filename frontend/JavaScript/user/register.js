@@ -1,14 +1,27 @@
+function validarRegistro(email, password) {
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+        alert("Por favor, ingresa un correo electrónico válido.");
+        return false;
+    }
+
+    if (password.length < 6) {
+        alert("La contraseña debe tener al menos 6 caracteres.");
+        return false;
+    }
+
+    return true;
+}
+
 function userRegister(){
 
     const name = document.getElementById('name').value;
     const password = document.getElementById('password').value;
     const email = document.getElementById('email').value;
-
-
     const messageElement = document.getElementById("message");
     messageElement.classList.remove('error', 'success');
-
-
     const submitBtn = document.getElementById('register-btn');
     const spinner = document.getElementById('loading-spinner');
 
@@ -19,6 +32,8 @@ function userRegister(){
         return;
     }
 
+    if (!validarRegistro(email, password)) {return;
+    }
     
     messageElement.innerHTML = "Registrando su cuenta...";
 
@@ -67,20 +82,4 @@ function userRegister(){
     nombre_de_negocio: document.getElementById('negocio_input').value // ¡Esto es lo que falta!
 };
 
-function validarRegistro(email, password) {
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!emailRegex.test(email)) {
-        alert("Por favor, ingresa un correo electrónico válido.");
-        return false;
-    }
-
-    if (password.length < 6) {
-        alert("La contraseña debe tener al menos 6 caracteres.");
-        return false;
-    }
-
-    return true;
-}
 }
