@@ -37,7 +37,8 @@ Ejecuta el script api/db/create_db.sql para generar la estructura de tablas.
 
 (Opcional) Ejecuta api/db/create_user.sql para configurar los permisos de acceso de la aplicación.
 
-2. Configurar el Backend
+2. Configurar el Backend:
+   
 Abre una terminal en el directorio raíz del proyecto.
 
 Crea y activa un entorno virtual de Python:
