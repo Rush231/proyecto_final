@@ -16,7 +16,6 @@ class Usuario:
         self.id = fila[0]
         self.nombre = fila[1]
         self.email = fila[2]
-        pass
 
     def to_dict(self):
         return {
@@ -67,8 +66,6 @@ class Usuario:
         if not cls.validar(datos):
             return jsonify({"error": "Datos inválidos"}), 400
         
-        pass
-
 
     @classmethod
     def put_usuario(cls, id, datos):
@@ -100,12 +97,6 @@ class Usuario:
         if fila:
             raise ValueError("El DNI ya está en uso por otro usuario")
         
-
-    def registrar(self, cursor):
-        sql = "INSERT INTO Usuario (name, email, password) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (self.nombre, self.email, self.password))
-        self.id = cursor.lastrowid
-        return self.id
 
     @staticmethod
     def login(email, password_ingresada):

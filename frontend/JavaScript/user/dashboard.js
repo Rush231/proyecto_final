@@ -14,17 +14,16 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const targetId = link.getAttribute('data-target');
 
-            
             contentSections.forEach(section => {
                 section.classList.add('hidden');
                 section.classList.remove('active');
             });
 
-            
             const targetSection = document.getElementById(targetId);
-            targetSection.classList.remove('hidden');
-            targetSection.classList.add('active');
-            
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('active');
+            }
             
             if (targetId === 'clientes' && typeof cargarClientes === 'function') cargarClientes();
             if (targetId === 'servicios' && typeof cargarServicios === 'function') cargarServicios();
@@ -34,13 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.clear();
         window.location.href = "login.html";
     });
 
-    
     const filtroReporte = document.getElementById('filtro-reporte');
     if(filtroReporte) {
         filtroReporte.addEventListener('change', (e) => {
@@ -48,10 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    
     cargarReportes('profesional');
 });
-
 
 async function cargarReportes(criterio = 'profesional') {
     const token = localStorage.getItem("token");
@@ -66,26 +61,21 @@ async function cargarReportes(criterio = 'profesional') {
         });
         const turnos = await handleResponse(response);
 
-
         const totalTurnos = turnos.length;
         const turnosReservados = turnos.filter(t => t.estado === 'Pendiente' || t.estado === 'reservado').length;
         const turnosCompletados = turnos.filter(t => t.estado === 'Completado').length;
         const turnosCancelados = turnos.filter(t => t.estado === 'Cancelado' || t.estado === 'Ausente').length;
-
         
         const porcentajeOcupacion = totalTurnos === 0 ? 0 : Math.round((turnosReservados / totalTurnos) * 100);
-
 
         document.getElementById('rep-ocupacion').innerText = `${porcentajeOcupacion}%`;
         document.getElementById('rep-reservados').innerText = turnosReservados;
         document.getElementById('rep-disponibles').innerText = turnosCompletados;
-
    
         const agrupado = {};
 
         turnos.forEach(t => {
             let clave = "Desconocido";
-            // Determinar la clave de agrupación según lo que seleccionó el usuario
             if (criterio === 'profesional') {
                 clave = t.profesional_nombre || "Profesional " + t.profesional_id;
             } else if (criterio === 'servicio') {
@@ -110,7 +100,6 @@ async function cargarReportes(criterio = 'profesional') {
             return;
         }
 
-        // Iterar sobre el objeto construido y generar el HTML
         for (const [nombre, datos] of Object.entries(agrupado)) {
             tbody.innerHTML += `
                 <tr>
@@ -128,49 +117,24 @@ async function cargarReportes(criterio = 'profesional') {
     }
 }
 
-
-    function ocultarTodasLasSecciones() {
-        const secciones = document.querySelectorAll('.view-section');
-        secciones.forEach(seccion => {
-            seccion.classList.add('hidden'); // Les pone a todos el candado de oculto
-        });
-    }
-
-    document.querySelectorAll('#nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            ocultarTodasLasSecciones();
-            
-            //  Quitamos la clase hidden solo al que queremos ver
-            const targetId = e.target.getAttribute('data-target');
-            const seccionAMostrar = document.getElementById(targetId);
-            
-            if (seccionAMostrar) {
-                seccionAMostrar.classList.remove('hidden');
-            }
-        });
-    function renderizarServiciosComoTags(servicios) {
-        const contenedor = document.getElementById('contenedor-servicios-tags');
-        contenedor.innerHTML = ''; 
-
-        servicios.forEach(s => {
-            // creamos un ID unico para el checkbox
-            const checkboxId = `servicio-${s.id}`;
-            
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = `
-                <input type="checkbox" id="${checkboxId}" value="${s.id}" class="servicio-tag-checkbox">
-                <label for="${checkboxId}" class="servicio-tag">
-                    ${s.nombre} <small>(${s.duracion} min)</small>
-                </label>
-            `;
-            
-            contenedor.appendChild(wrapper.firstElementChild);
-            contenedor.appendChild(wrapper.lastElementChild);
-        });
-    }
-
+function renderizarServiciosComoTags(servicios) {
+    const contenedor = document.getElementById('contenedor-servicios-tags');
+    if (!contenedor) return; 
     
+    contenedor.innerHTML = ''; 
 
-});
+    servicios.forEach(s => {
+        const checkboxId = `servicio-${s.id}`;
+        
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <input type="checkbox" id="${checkboxId}" value="${s.id}" class="servicio-tag-checkbox">
+            <label for="${checkboxId}" class="servicio-tag">
+                ${s.nombre} <small>(${s.duracion} min)</small>
+            </label>
+        `;
+        
+        contenedor.appendChild(wrapper.firstElementChild);
+        contenedor.appendChild(wrapper.lastElementChild);
+    });
+}
