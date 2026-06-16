@@ -1,5 +1,3 @@
-from multiprocessing import connection
-
 from api.db.db_config import get_db_connection
 from flask import jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
