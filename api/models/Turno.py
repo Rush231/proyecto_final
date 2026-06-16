@@ -52,7 +52,7 @@ class Turno:
         cursor.execute(sql, (negocio_id,))
         turnos = cursor.fetchall()
         
-        # Formatear la fecha a texto estricto para evitar el desfase horario en Javascript
+        # Formatear la fecha a texto estricto para evitar el desfase horario en JavaScriptscript
         for t in turnos:
             if t['fecha_hora']:
                 t['fecha_hora'] = t['fecha_hora'].strftime('%d/%m/%Y %H:%M')

@@ -307,7 +307,7 @@ select:focus {
         width: 100% !important;
     }
 
-    /* Contenedor principal */
+
 .servicios-selector {
     background: #f8f9fa;
     border: 1px solid #dee2e6;
@@ -343,7 +343,7 @@ select:focus {
     cursor: pointer;
 }
 
-/* Contenedor con scroll elegante */
+/* Contenedor con scroll */
 .servicios-scroll {
     max-height: 150px;
     overflow-y: auto;
@@ -392,7 +392,7 @@ form > div[style*="display: flex"] .form-group {
     padding: 15px 0 !important;
 }
 
-/* Ocultar el checkbox cuadrado feo */
+
 input.servicio-tag-checkbox {
     display: none !important;
 }
@@ -405,7 +405,7 @@ input.servicio-tag-checkbox {
 
 
 .form-actions button {
-    flex: 1; /* Esto hace que ambos ocupen exactamente el 50% del ancho */
+    flex: 1;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
