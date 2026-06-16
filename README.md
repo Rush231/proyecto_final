@@ -13,18 +13,18 @@ javaScript puro
 Estructura del sistema 
 
 proyecto_final/
-├── api/                    # Lógica del servidor y API RESTful
-│   ├── db/                 # Scripts SQL (creación de base de datos y usuarios) y configuración
-│   ├── models/             # Modelos de datos (Usuario, Cliente, Turno, Negocio, etc.)
-│   ├── routes/             # Controladores y definición de endpoints
-│   └── utils/              # Utilidades, incluyendo la verificación de seguridad/tokens
-├── frontend/               # Interfaz de usuario
-│   ├── css/                # Hojas de estilo generales y específicas (ej. login)
-│   ├── html/               # Vistas principales (login, dashboard)
-│   └── JavaScript/         # Lógica modular del cliente separada por entidades (Turno, Cliente, etc.)
-├── settings/
-│   └── requeriments.txt    # Dependencias de Python necesarias para el backend
-└── main.py                 # Archivo de entrada para levantar el servidor Flask
+api/                    # Lógica del servidor y API RESTful
+db/                 # Scripts SQL (creación de base de datos y usuarios) y configuración
+models/             # Modelos de datos (Usuario, Cliente, Turno, Negocio, etc.)
+routes/             # Controladores y definición de endpoints
+utils/              # Utilidades, incluyendo la verificación de seguridad/tokens
+frontend/               # Interfaz de usuario
+css/                # Hojas de estilo generales y específicas (ej. login)
+html/               # Vistas principales (login, dashboard)
+JavaScript/         # Lógica modular del cliente separada por entidades (Turno, Cliente, etc.)
+settings/
+requeriments.txt    # Dependencias de Python necesarias para el backend
+main.py                 # Archivo de entrada para levantar el servidor Flask
 
 
 Instalación y Configuración Local
