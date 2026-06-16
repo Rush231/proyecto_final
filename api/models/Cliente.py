@@ -46,6 +46,22 @@ class Cliente:
         cursor.close()
         connection.close()
 
+
+    @classmethod
+    def eliminar(cls, id, negocio_id):
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        try:
+            sql = "DELETE FROM Cliente WHERE id = %s AND negocio_id = %s"
+            cursor.execute(sql, (id, negocio_id))
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()
     @staticmethod
     def guardar_con_negocio(datos, negocio_id):
         connection = get_db_connection()

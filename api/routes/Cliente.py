@@ -77,7 +77,19 @@ def crear_cliente(usuario_actual):
         if connection:
             connection.close()
 
-    
+@app.route('/cliente/<int:id>', methods=['DELETE', 'OPTIONS'])
+@token_requerido
+def eliminar_cliente(usuario_actual, id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
+    try:
+        Cliente.eliminar(id, usuario_actual['negocio_id'])
+        return jsonify({"message": "Cliente eliminado con éxito"}), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar cliente: {str(e)}")
+        return jsonify({"error": "No se puede eliminar el cliente. Verifique que no tenga turnos activos."}), 500  
     
     
 @app.route('/cliente/<int:id>', methods=['PUT', 'OPTIONS'])

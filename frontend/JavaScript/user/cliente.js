@@ -34,7 +34,7 @@ async function guardarCliente(event) {
     };
 
     // Si el ID tiene número significa que estamos EDITANDO (PUT), si está vacío estamos CREANDO (POST)
-    const url = id ? `${apiURL}/cliente/${id}` : `${apiURL}/cliente`;
+    const url = id ? `${apiURL}/Cliente/${id}` : `${apiURL}/cliente`;
     const metodo = id ? 'PUT' : 'POST';
 
     try {
@@ -50,6 +50,10 @@ async function guardarCliente(event) {
         await handleResponse(response);
         
         cargarClientes(); 
+
+        if (typeof cargarDatosFormularioTurno === 'function') {
+            cargarDatosFormularioTurno(); 
+        }
         cerrarFormularioCliente();
     } catch (error) {
         console.error(`Error al ${metodo === 'PUT' ? 'editar' : 'crear'} cliente:`, error);
@@ -91,20 +95,23 @@ async function cargarClientes() {
     } catch (error) {
         console.error("Error al cargar clientes:", error);
     }
-}
 
+}
 async function eliminarCliente(id) {
     if (!confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
         return;
     }
     const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`${apiURL}/eliminar/${id}`, {
+        const response = await fetch(`${apiURL}/cliente/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            headers: { 
+                'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json' 
+            }
         });
         await handleResponse(response);
-        cargarClientes();
+        cargarClientes(); // Recarga la tabla para que el cliente desaparezca de la vista
     } catch (error) {
         console.error("Error al eliminar cliente:", error);
         alert("No se pudo eliminar el cliente.");

@@ -21,6 +21,6 @@ import api.routes.Cliente
 import api.routes.Disponibilidad
 import api.routes.Usuario
 import api.routes.Negocio
-import api.routes.profesional
+import api.routes.Profesional
 import api.routes.Servicio
 import api.routes.Turno
