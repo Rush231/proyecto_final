@@ -1,6 +1,13 @@
 from api.db.db_config import get_db_connection
 from datetime import datetime, timedelta
 class Turno:
+    esquema = {
+        "cliente_id": int,
+        "profesional_id": int,
+        "servicio_id": int,
+        "fecha_hora": str,  # Se espera un string en formato 'YYYY-MM-DD HH:MM'
+        "estado": str}
+    
     def __init__(self, cliente_id, profesional_id, servicio_id, fecha_hora, estado='reservado', id=None):
         self.id = id
         self.cliente_id = cliente_id
@@ -20,6 +27,8 @@ class Turno:
     
     @staticmethod
     def obtener_por_profesional(cursor, profesional_id):
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
         sql = """
             SELECT t.id, t.fecha_hora, t.estado, c.nombre as cliente_nombre, s.nombre as servicio_nombre
             FROM Turno t
@@ -28,8 +37,12 @@ class Turno:
             WHERE t.profesional_id = %s
         """
         cursor.execute(sql, (profesional_id,))
+        turnos = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+        return turnos
         
-        return cursor.fetchall()
     
 
     @staticmethod
@@ -61,18 +74,18 @@ class Turno:
         connection.close()
         return turnos
     @staticmethod
-    def eliminar(turno_id):
-        """Elimina un turno físico de la base de datos por su ID."""
+    def eliminar(cls, turno_id, negocio_id):
         connection = get_db_connection()
         cursor = connection.cursor()
-        
-        sql = "DELETE FROM Turno WHERE id = %s"
-        cursor.execute(sql, (turno_id,))
-        
-        connection.commit()
-        cursor.close()
-        connection.close()
-        return True
+        try:
+            sql = "DELETE FROM Turno WHERE id = %s AND negocio_id = %s"
+            cursor.execute(sql, (turno_id, negocio_id))
+            filas_borradas = cursor.rowcount
+            connection.commit()
+            return filas_borradas > 0
+        finally:
+            cursor.close()
+            connection.close()
     @classmethod
     def validar_disponibilidad(cls, profesional_id, servicio_id, fecha_hora_str):
         connection = get_db_connection()
@@ -170,19 +183,33 @@ class Turno:
 
     @classmethod
     def cambiar_estado(cls, id, nuevo_estado, negocio_id):
-            connection = get_db_connection()
-            cursor = connection.cursor()
-            
-            try:
-               
-                sql = "UPDATE turno SET estado = %s WHERE id = %s"
-               
-                cursor.execute(sql, (nuevo_estado, id))
-                
-                connection.commit()
-            except Exception as e:
-                connection.rollback()
-                raise e
-            finally:
-                cursor.close()
-                connection.close()
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        try:
+            sql = "UPDATE Turno SET estado = %s WHERE id = %s AND negocio_id = %s"
+            cursor.execute(sql, (nuevo_estado, id, negocio_id))
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()
+    @classmethod
+    def validar(cls, datos):
+        if not datos or not isinstance(datos, dict):
+            return False, "Datos inválidos: Se esperaba un objeto JSON."
+        
+        for campo, tipo in cls.esquema.items():
+            if campo not in datos:
+                return False, f"Falta el campo obligatorio: {campo}."
+            if not isinstance(datos[campo], tipo):
+                return False, f"El campo '{campo}' debe ser del tipo {tipo.__name__}."
+        
+        # Validar formato de fecha y hora
+        try:
+            datetime.strptime(datos['fecha_hora'], '%Y-%m-%d %H:%M')
+        except ValueError:
+            return False, "El campo 'fecha_hora' debe tener el formato 'YYYY-MM-DD HH:MM'."
+        
+        return True, "Datos válidos."

@@ -1,5 +1,12 @@
 from api.db.db_config import get_db_connection
 class Cliente:
+    esquema = {
+        "nombre": str,
+        "apellido": str,
+        "email": str,
+        "telefono": str,
+        "negocio_id": int
+    }
     def __init__(self, nombre, email, id=None):
         self.id = id
         self.nombre = nombre
@@ -82,3 +89,19 @@ class Cliente:
         cursor.close()
         connection.close()
         return nuevo_id
+    @classmethod
+    def validar(cls, datos):
+        if not datos or not isinstance(datos, dict):
+            return False, "Los datos proporcionados no tienen un formato válido."
+        
+        for campo, tipo_esperado in cls.esquema.items():
+            if campo not in datos:
+                return False, f"El campo obligatorio '{campo}' no está presente."
+            
+            if tipo_esperado == int and isinstance(datos[campo], str) and datos[campo].isdigit():
+                datos[campo] = int(datos[campo])
+                
+            if not isinstance(datos[campo], tipo_esperado):
+                return False, f"El campo '{campo}' debe ser de tipo {tipo_esperado.__name__}."
+                
+        return True, "Estructura verificada correctamente"

@@ -17,23 +17,23 @@ def crear_turno(usuario_actual):
         datos['negocio_id'] = usuario_actual['negocio_id']
 
 
-        es_valido, mensaje = Turno.validar_disponibilidad(
+        es_valido, mensaje = Turno.validar(datos)
+        
+        es_valido_horario, mensaje_horario = Turno.validar_disponibilidad(
             profesional_id=datos['profesional_id'],
             servicio_id=datos['servicio_id'],
             fecha_hora_str=datos['fecha_hora']
         )
+        if not es_valido_horario:
+            return jsonify({"error": mensaje_horario}), 400
 
-        # Si el modelo dijo False, bloqueamos la petición y devolvemos un error 400 (Bad Request)
-        if not es_valido:
-            return jsonify({"error": mensaje}), 400
-
-        # Si es True, continuamos normalmente y guardamos
         nuevo_id = Turno.registrar(datos)
         return jsonify({"message": "Turno creado con éxito", "id": nuevo_id}), 201
 
     except Exception as e:
         print(f"Error al crear turno: {str(e)}")
         return jsonify({"error": "Error interno del servidor"}), 500
+
 
 
 @app.route('/turnos', methods=['GET'])
@@ -58,9 +58,11 @@ def eliminar_turno(usuario_actual, id):
         return jsonify({}), 200
         
     try:
-        Turno.eliminar(id)
-        return jsonify({"message": "Turno cancelado y eliminado con éxito"}), 200
-        
+        fue_eliminado = Turno.eliminar(id, usuario_actual['negocio_id'])
+        if fue_eliminado:
+            return jsonify({"message": "Turno eliminado con éxito"}), 200
+        else:
+            return jsonify({"error": "No se encontró el turno o no pertenece a tu negocio"}), 404
     except Exception as e:
         print(f"Error al eliminar el turno {id}: {str(e)}")
         return jsonify({"error": str(e)}), 500

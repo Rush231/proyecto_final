@@ -37,7 +37,9 @@ def crear_usuario():
         return jsonify({"error": "No se pudo crear el usuario. Revisa los datos."}), 500
 
 @app.route('/usuario/<int:usuario_id>', methods=['GET'])
-def obtener_usuario(usuario_id):
+def obtener_usuario(usuario_actual,usuario_id):
+    if usuario_actual['id'] != usuario_id:
+        return jsonify({"error": "No autorizado para acceder a este recurso"}), 403
     """Obtiene los datos de un usuario por su ID."""
     usuario = Usuario.get_usuario_por_id(usuario_id)
     if usuario:
@@ -87,9 +89,12 @@ def login_usuario():
 
 
 @app.route('/usuario/<int:usuario_id>', methods=['DELETE', 'OPTIONS'])
-def eliminar_usuario(usuario_id):
+def eliminar_usuario(usuario_actual, usuario_id):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
+    
+    if usuario_actual['id'] != usuario_id:
+        return jsonify({"error": "No autorizado para eliminar este usuario"}), 403
 
     try:
         eliminado = Usuario.eliminar(usuario_id)

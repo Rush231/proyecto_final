@@ -4,7 +4,7 @@ from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.utils.seguridad import token_requerido
 from api.models.Servicio import Servicio
-
+from api.models.Negocio import Negocio
 @app.route('/servicio', methods=['GET', 'OPTIONS'])
 @token_requerido
 def get_todos_los_servicios(usuario_actual):
@@ -26,27 +26,17 @@ def get_todos_los_servicios(usuario_actual):
 @app.route('/servicio', methods=['POST'])
 @token_requerido
 def crear_servicio(usuario_actual):
-    datos = request.json
-    datos['negocio_id'] = usuario_actual['negocio_id']
-    datos = request.json
-    sql = "INSERT INTO Servicio (name, duracion, negocio_id) VALUES (%s, %s, %s)"
-    
-    conn = None
     try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({"error": "Error de conexión"}), 500
-            
-        cursor = conn.cursor()
-        cursor.execute(sql, (datos['nombre'], datos['duracion'], datos['negocio_id']))
-        conn.commit()
-        return jsonify({"mensaje": "Servicio creado", "id": cursor.lastrowid}), 201
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+        datos = request.json
+        datos['negocio_id'] = usuario_actual['negocio_id']
+        es_valido, servicio = Servicio.crear(datos)
+        if not es_valido:
+            return jsonify({"error": servicio}), 400
+        nuevo_id = servicio.registrar()
+        return jsonify({"message": "Servicio creado exitosamente", "id": nuevo_id}), 201
+    except Exception as e:
+        print(f"Error al crear servicio: {str(e)}")
+        return jsonify({"error": "Error interno al crear el servicio"}), 500
             
 @app.route('/servicio/profesional/<int:prof_id>', methods=['GET', 'OPTIONS'])
 @token_requerido

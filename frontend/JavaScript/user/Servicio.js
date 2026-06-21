@@ -9,41 +9,44 @@ function cerrarFormularioServicio() {
     document.getElementById('form-crear-servicio').reset();
 }
 
-async function crearServicio(event) {
+function crearServicio(event) {
     event.preventDefault();
     const token = localStorage.getItem("token");
-
     const id = document.getElementById('input-servicio-id').value;
 
     const datos = {
         nombre: document.getElementById('servicio-nombre').value,
-        duracion: document.getElementById('servicio-duracion').value
+    
+        duracion: parseInt(document.getElementById('servicio-duracion').value)
     };
 
     const url = id ? `${apiURL}/servicio/${id}` : `${apiURL}/servicio`;
-    const method = id ? 'PUT' : 'POST';
+    const metodo = id ? 'PUT' : 'POST';
 
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datos)
-        });
-        
-        if (response.ok) {
-            alert(id ? "Servicio actualizado" : "Servicio creado");
+    fetch(url, {
+        method: metodo,
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(respuesta => {
+        if (respuesta.ok) {
+            alert(id ? "Servicio actualizado con éxito" : "Servicio creado con éxito");
             cerrarFormularioServicio();
-            cargarServicios(); // Recarga la tabla
+            cargarServicios(); // Refresca los datos visibles en la tabla
         } else {
-            const error = await response.json();
-            alert("Error: " + error.message);
+            
+            return respuesta.json().then(errorServidor => { 
+                throw new Error(errorServidor.error || "Error inesperado en la base de datos"); 
+            });
         }
-    } catch (error) {
-        console.error("Error al guardar:", error);
-    }
+    })
+    .catch(error => {
+        console.error("Detalle del error en la petición:", error);
+        alert("Hubo un problema: " + error.message);
+    });
 }
 
 async function guardarServicio(event) {

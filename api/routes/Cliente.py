@@ -22,60 +22,24 @@ def get_todos_clientes(usuario_actual):
 @app.route('/cliente', methods=['POST', 'OPTIONS'])
 @token_requerido
 def crear_cliente(usuario_actual):
-    if request.method == 'OPTIONS':
-        return '', 200
-
-
-    connection = None
-    cursor = None
-    
     try:
         datos = request.json
-
-        if not datos or 'nombre' not in datos or 'correo' not in datos:
-            return jsonify({"error": "Datos incompletos"}), 400
-
-        # Obtener negocio_id desde el token
-        negocio_id = usuario_actual.get('negocio_id')
-        if not negocio_id:
-            return jsonify({"error": "Error de autenticación: negocio no encontrado"}), 401
-
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        # Le inyectamos el ID del negocio del usuario logueado
+        datos['negocio_id'] = usuario_actual['negocio_id']
         
-        sql = "INSERT INTO Cliente (name, email, telefono, negocio_id) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (
-            datos['nombre'], 
-            datos['correo'], 
-            datos.get('telefono', ''), 
-            negocio_id
-        ))
-        connection.commit()
+        # Validamos usando el método de clase
+        es_valido, mensaje_validacion = Cliente.validar(datos)
+        if not es_valido:
+            return jsonify({"error": mensaje_validacion}), 400
+            
+        # Llamamos al modelo para que haga el INSERT
+        nuevo_id = Cliente.registrar(datos)
         
-        return jsonify({"message": "Cliente creado exitosamente"}), 201
-
-    except mysql.connector.Error as err:
-        if connection:
-            connection.rollback()
+        return jsonify({"mensaje": "Cliente creado exitosamente", "id": nuevo_id}), 201
         
-        if err.errno == 1062:
-            return jsonify({"error": "El correo ya está registrado en este negocio"}), 409
-        
-        print(f"Error de base de datos: {err}")
-        return jsonify({"error": "Error interno de base de datos"}), 500
-
-    except Exception as e:
-        # Manejo de errores generales
-        if connection:
-            connection.rollback()
-        print(f"Error técnico inesperado: {e}")
-        return jsonify({"error": "Error interno del servidor"}), 500
-
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
+    except Exception as error:
+        print(f"Error al registrar cliente: {str(error)}")
+        return jsonify({"error": "No se pudo procesar la solicitud"}), 500
 
 @app.route('/cliente/<int:id>', methods=['DELETE', 'OPTIONS'])
 @token_requerido

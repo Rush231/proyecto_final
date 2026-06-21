@@ -1,5 +1,8 @@
 from api.db.db_config import get_db_connection
 class Negocio:
+    esquema = {
+        
+    }
     def __init__(self, nombre, tipo, id=None):
         self.id = id
         self.nombre = nombre

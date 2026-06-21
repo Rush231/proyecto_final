@@ -1,5 +1,10 @@
 from api.db.db_config import get_db_connection
 class Servicio:
+    esquema = {
+        "nombre": str,
+        "duracion": int,
+        "negocio_id": int
+    }
     def __init__(self, nombre, duracion, negocio_id, id=None):
         self.id = id
         self.nombre = nombre
@@ -94,4 +99,13 @@ class Servicio:
         finally:
             cursor.close()
             connection.close()
-    
+    @classmethod
+    def validar(cls, datos):
+        if not datos or not isinstance(datos, dict):
+            return False, "Datos inválidos: Se esperaba un objeto JSON."
+        
+        for campo, tipo_esperado in cls.esquema.items():
+            if campo not in datos:
+                return False, f"Falta el campo requerido: {campo}"
+            if not isinstance(datos[campo], tipo_esperado):
+                return False, f"Tipo de dato incorrecto para {campo}: se esperaba {tipo_esperado.__name__}"

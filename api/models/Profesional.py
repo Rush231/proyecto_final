@@ -1,7 +1,17 @@
+from multiprocessing.dummy import connection
+
 from api.db.db_config import get_db_connection
 
 class Profesional:
-    
+    esquema = {
+        'nombre': str,
+        'especialidad': str,
+        'dias_trabajo': list,
+        'hora_inicio': str,
+        'hora_fin': str,
+        'servicios': list
+    }
+
     @staticmethod
     def obtener_por_negocio(negocio_id):
         connection = get_db_connection()
@@ -107,19 +117,34 @@ class Profesional:
         cursor = connection.cursor()
         
         try:
-            # 1. Borramos la disponibilidad asociada primero
+            #  Borramos la disponibilidad asociada
             cursor.execute("DELETE FROM Disponibilidad WHERE profesional_id = %s", (id,))
             
-            # 2. Borramos los servicios asociados
+            #  Borramos los servicios asociados
             cursor.execute("DELETE FROM Profesional_Servicio WHERE profesional_id = %s", (id,))
             
-            # 3. Finalmente borramos al profesional
+            #  borramos al profesional
             cursor.execute("DELETE FROM Profesional WHERE id = %s AND negocio_id = %s", (id, negocio_id))
             
+            filas_borradas = cursor.rowcount
             connection.commit()
+            
+            return filas_borradas > 0
         except Exception as e:
             connection.rollback()
             raise e
         finally:
             cursor.close()
             connection.close()
+
+    @classmethod
+    def validar(cls, datos):
+        if not datos or not isinstance(datos, dict):
+            return False, "Los datos proporcionados no son válidos."
+        
+        for campo, tipo_esperado in cls.esquema.items():
+            if campo not in datos:
+                return False, f"Falta el campo obligatorio: '{campo}'"
+            
+            if not isinstance(datos[campo], tipo_esperado):
+                return False, f"El campo '{campo}' debe ser de tipo {tipo_esperado.__name__}"

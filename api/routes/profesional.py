@@ -4,7 +4,7 @@ from api.db.db_config import get_db_connection
 from api.db.db_config import mysql
 from api.utils.seguridad import token_requerido
 from api.models.Profesional import Profesional
-
+from api.models.Turno import Turno
 @app.route('/profesional', methods=['POST', 'OPTIONS'])
 @token_requerido
 def crear_profesional(usuario_actual):
@@ -14,6 +14,11 @@ def crear_profesional(usuario_actual):
     try:
         datos = request.json
         datos['negocio_id'] = usuario_actual['negocio_id']
+
+        validar, mensaje = Profesional.validar(datos)
+        if not validar:
+            return jsonify({"error": mensaje}), 400 
+
         
         nuevo_id = Profesional.registrar(datos)
         
@@ -36,34 +41,12 @@ def get_profesionales(usuario_actual):
 @app.route('/turnos/profesional/<int:profesional_id>', methods=['GET'])
 @token_requerido
 def get_turnos_profesional(usuario_actual, profesional_id):
-    """Obtiene todos los turnos de un profesional (para su agenda)."""
-    sql = """
-        SELECT t.id, t.fecha_hora, t.estado, 
-               c.nombre AS nombre_cliente, 
-               s.nombre AS nombre_servicio, s.duracion
-        FROM Turno t
-        JOIN Cliente c ON t.cliente_id = c.id
-        JOIN Servicio s ON t.servicio_id = s.id
-        WHERE t.profesional_id = %s
-        ORDER BY t.fecha_hora ASC
-    """
-    
-    conn = None
     try:
-        conn = get_db_connection()
-        if conn is None:
-            return jsonify({"error": "Error de conexión"}), 500
-            
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(sql, (profesional_id,))
-        turnos = cursor.fetchall()
+        turnos = Turno.obtener_por_profesional(profesional_id)
         return jsonify(turnos), 200
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+    except Exception as e:
+        print(f"Error al obtener turnos del profesional: {str(e)}")
+        return jsonify({"error": "Error interno al obtener los turnos"}), 5
 
 
 @app.route('/profesional/<int:id>', methods=['PUT', 'OPTIONS'])
@@ -75,6 +58,10 @@ def actualizar_profesional(usuario_actual, id):
     try:
         datos = request.json
         datos['negocio_id'] = usuario_actual['negocio_id']
+        validar, mensaje = Profesional.validar(datos)
+        if not validar:
+            return jsonify({"error": mensaje}), 400
+        
         Profesional.actualizar(id, datos)
         return jsonify({"message": "Profesional actualizado exitosamente"}), 200
         
