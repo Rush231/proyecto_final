@@ -109,3 +109,4 @@ class Servicio:
                 return False, f"Falta el campo requerido: {campo}"
             if not isinstance(datos[campo], tipo_esperado):
                 return False, f"Tipo de dato incorrecto para {campo}: se esperaba {tipo_esperado.__name__}"
+        return True, "Datos válidos"

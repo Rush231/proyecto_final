@@ -29,10 +29,13 @@ def crear_servicio(usuario_actual):
     try:
         datos = request.json
         datos['negocio_id'] = usuario_actual['negocio_id']
-        es_valido, servicio = Servicio.crear(datos)
+        
+        es_valido, mensaje = Servicio.validar(datos)
         if not es_valido:
-            return jsonify({"error": servicio}), 400
-        nuevo_id = servicio.registrar()
+            return jsonify({"error": mensaje}), 400
+            
+        nuevo_id = Servicio.registrar(datos)
+        
         return jsonify({"message": "Servicio creado exitosamente", "id": nuevo_id}), 201
     except Exception as e:
         print(f"Error al crear servicio: {str(e)}")

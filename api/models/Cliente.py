@@ -2,19 +2,18 @@ from api.db.db_config import get_db_connection
 class Cliente:
     esquema = {
         "nombre": str,
-        "apellido": str,
-        "email": str,
+        "correo": str,
         "telefono": str,
         "negocio_id": int
     }
-    def __init__(self, nombre, email, id=None):
+    def __init__(self, nombre, correo, id=None):
         self.id = id
         self.nombre = nombre
-        self.email = email
+        self.correo = correo
 
     def guardar(self, cursor):
-        sql = "INSERT INTO Cliente (nombre, email) VALUES (%s, %s)"
-        cursor.execute(sql, (self.nombre, self.email))
+        sql = "INSERT INTO Cliente (nombre, correo) VALUES (%s, %s)"
+        cursor.execute(sql, (self.nombre, self.correo))
         self.id = cursor.lastrowid
         return self.id
     @staticmethod

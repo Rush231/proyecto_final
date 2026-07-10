@@ -148,3 +148,6 @@ class Profesional:
             
             if not isinstance(datos[campo], tipo_esperado):
                 return False, f"El campo '{campo}' debe ser de tipo {tipo_esperado.__name__}"
+
+
+        return True, "Datos válidos"

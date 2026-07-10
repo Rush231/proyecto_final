@@ -33,7 +33,7 @@ def crear_cliente(usuario_actual):
             return jsonify({"error": mensaje_validacion}), 400
             
         # Llamamos al modelo para que haga el INSERT
-        nuevo_id = Cliente.registrar(datos)
+        nuevo_id = Cliente.guardar_con_negocio(datos, usuario_actual['negocio_id']) 
         
         return jsonify({"mensaje": "Cliente creado exitosamente", "id": nuevo_id}), 201
         
