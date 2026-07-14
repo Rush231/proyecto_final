@@ -1,4 +1,3 @@
-
 async function cargarConfiguracion() {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -9,12 +8,16 @@ async function cargarConfiguracion() {
         });
         const data = await handleResponse(response);
         
-
         document.getElementById('config-nombre').value = data.nombre || '';
         document.getElementById('config-telefono').value = data.telefono || '';
         
-        document.getElementById('config-apertura').value = data.hora_apertura ? data.hora_apertura.substring(0,5) : '';
-        document.getElementById('config-cierre').value = data.hora_cierre ? data.hora_cierre.substring(0,5) : '';
+        if (data.hora_apertura) {
+            document.getElementById('config-apertura').value = data.hora_apertura.substring(0,5);
+        }
+
+        if (data.hora_cierre) {
+            document.getElementById('config-cierre').value = data.hora_cierre.substring(0,5);
+        }
         
     } catch (error) {
         console.error("Error al cargar configuración:", error);
@@ -24,12 +27,25 @@ async function cargarConfiguracion() {
 async function guardarConfiguracion(e) {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    
+
+    // 1. Obtenemos los valores de los horarios
+    const horaApertura = document.getElementById('config-apertura').value;
+    const horaCierre = document.getElementById('config-cierre').value;
+
+    // 2. Validación lógica
+    if (horaApertura && horaCierre) {
+        if (horaApertura >= horaCierre) {
+            alert("Error: La hora de cierre debe ser posterior a la hora de apertura.");
+            return;
+        }
+    }
+
+    // 3. ÚNICA declaración de 'datos'
     const datos = {
         nombre: document.getElementById('config-nombre').value,
         telefono: document.getElementById('config-telefono').value,
-        hora_apertura: document.getElementById('config-apertura').value,
-        hora_cierre: document.getElementById('config-cierre').value
+        hora_apertura: horaApertura,
+        hora_cierre: horaCierre
     };
 
     try {
@@ -51,7 +67,40 @@ async function guardarConfiguracion(e) {
 }
 
 
+function inicializarSelectsHorarios() {
+    const selects = ['config-apertura', 'config-cierre'];
+    
+    selects.forEach(id => {
+        const selectElement = document.getElementById(id);
+        if (!selectElement) return;
+        
+        selectElement.innerHTML = ''; // Limpiamos opciones previas
+        
+        // Generamos horarios cada 30 minutos
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m <= 30; m += 30) {
+
+                const hora24 = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                
+                
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                let hora12 = h % 12;
+                hora12 = hora12 ? hora12 : 12; // Si es 0, mostramos 12
+                const textoVisible = `${hora12}:${m.toString().padStart(2, '0')} ${ampm}`;
+                
+                
+                const option = document.createElement('option');
+                option.value = hora24;
+                option.textContent = textoVisible;
+                selectElement.appendChild(option);
+            }
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    inicializarSelectsHorarios();
+
     const navLinks = document.querySelectorAll('#nav-links a');
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {

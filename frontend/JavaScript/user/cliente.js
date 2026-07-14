@@ -34,7 +34,7 @@ async function guardarCliente(event) {
     };
 
     // Si el ID tiene número significa que estamos EDITANDO (PUT), si está vacío estamos CREANDO (POST)
-    const url = id ? `${apiURL}/Cliente/${id}` : `${apiURL}/cliente`;
+    const url = id ? `${apiURL}/cliente/${id}` : `${apiURL}/cliente`;
     const metodo = id ? 'PUT' : 'POST';
 
     try {

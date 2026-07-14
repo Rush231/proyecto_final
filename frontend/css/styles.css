@@ -416,3 +416,6 @@ input.servicio-tag-checkbox {
 
 .btn-primary { background-color: #3498db; color: white; }
 .btn-secondary { background-color: #e74c3c; color: white; }
+#tabla-reportes td:last-child {
+    display: table-cell;
+    border: 1px solid #ddd;}

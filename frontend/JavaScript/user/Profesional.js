@@ -70,17 +70,25 @@ async function guardarProfesional(event) {
     const token = localStorage.getItem("token");
     
     const id = document.getElementById('profesional-id').value;
+    const horaInicio = document.getElementById('profesional-hora-inicio').value;
+    const horaFin = document.getElementById('profesional-hora-fin').value;
+
+    
+    if (horaInicio >= horaFin) {
+        alert("Error: La hora de salida debe ser posterior a la hora de entrada.");
+        return; 
+    }
+
     const checkboxesServicios = document.querySelectorAll('.servicio-checkbox:checked');
     const checkboxesDias = document.querySelectorAll('.dia-checkbox:checked');
-
+    
     const datos = {
         nombre: document.getElementById('profesional-nombre').value,
         especialidad: document.getElementById('profesional-especialidad').value,
-        hora_inicio: document.getElementById('profesional-hora-inicio').value,
-        hora_fin: document.getElementById('profesional-hora-fin').value,
-        // Convertimos los valores de los días a números enteros para MySQL
-        dias_trabajo: Array.from(checkboxesDias).map(cb => parseInt(cb.value)), 
-        servicios: Array.from(checkboxesServicios).map(cb => parseInt(cb.value)) 
+        hora_inicio: horaInicio, 
+        hora_fin: horaFin,      
+        dias_trabajo: Array.from(checkboxesDias).map(cb => parseInt(cb.value)),
+        servicios: Array.from(checkboxesServicios).map(cb => parseInt(cb.value))
     };
 
     const url = id ? `${apiURL}/profesional/${id}` : `${apiURL}/profesional`;
@@ -95,6 +103,9 @@ async function guardarProfesional(event) {
         
         await handleResponse(response);
         cargarProfesionales(); 
+        if (typeof cargarDatosFormularioTurno === 'function') {
+            cargarDatosFormularioTurno();
+        }
         cerrarFormularioProfesional();
     } catch (error) {
         console.error("Error al guardar profesional:", error);
@@ -173,5 +184,33 @@ async function cargarProfesionales() {
     } catch (error) {
         console.error("Error cargando tabla:", error);
     }
-
-document.addEventListener('DOMContentLoaded', cargarProfesionales);}
+}
+function inicializarSelectsHorariosProfesional() {
+    const selects = ['profesional-hora-inicio', 'profesional-hora-fin'];
+    
+    selects.forEach(id => {
+        const selectElement = document.getElementById(id);
+        if (!selectElement) return;
+        
+        selectElement.innerHTML = ''; // Limpiamos opciones
+        
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m <= 30; m += 30) {
+                const hora24 = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                let hora12 = h % 12;
+                hora12 = hora12 ? hora12 : 12;
+                const textoVisible = `${hora12}:${m.toString().padStart(2, '0')} ${ampm}`;
+                
+                const option = document.createElement('option');
+                option.value = hora24;
+                option.textContent = textoVisible;
+                selectElement.appendChild(option);
+            }
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarSelectsHorariosProfesional(); // Genera los <select>
+    cargarProfesionales();
+});
