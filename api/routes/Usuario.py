@@ -7,6 +7,8 @@ import mysql.connector
 import jwt
 import datetime
 import re
+from api.utils.seguridad import token_requerido
+
 @app.route('/usuario', methods=['POST'])
 def crear_usuario():
  
@@ -37,6 +39,7 @@ def crear_usuario():
         return jsonify({"error": "No se pudo crear el usuario. Revisa los datos."}), 500
 
 @app.route('/usuario/<int:usuario_id>', methods=['GET'])
+@token_requerido
 def obtener_usuario(usuario_actual,usuario_id):
     if usuario_actual['id'] != usuario_id:
         return jsonify({"error": "No autorizado para acceder a este recurso"}), 403
@@ -89,6 +92,7 @@ def login_usuario():
 
 
 @app.route('/usuario/<int:usuario_id>', methods=['DELETE', 'OPTIONS'])
+@token_requerido
 def eliminar_usuario(usuario_actual, usuario_id):
     if request.method == 'OPTIONS':
         return jsonify({}), 200

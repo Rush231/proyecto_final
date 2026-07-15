@@ -8,7 +8,7 @@ let diasTrabajo = [];
 let fechaSeleccionada = ""; 
 let horaSeleccionada = "";
 
-document.getElementById('turno-profesional-id').addEventListener('change', async function() {
+document.getElementById('turno-profesional-id').addEventListener('change', function() {
     const profId = this.value;
     const selectServicio = document.getElementById('turno-servicio-id');
     
@@ -18,7 +18,6 @@ document.getElementById('turno-profesional-id').addEventListener('change', async
         diasTrabajo = [];
         return;
     }
-
     try {
         const token = localStorage.getItem("token");
         
@@ -61,225 +60,152 @@ document.getElementById('turno-servicio-id').addEventListener('change', function
     if (fechaSeleccionada) buscarHorariosLibres();
 });
 
-async function cargarDatosFormularioTurno() {
+function cargarDatosFormularioTurno() {
     const token = localStorage.getItem("token");
-    try {
-        const resClientes = await fetch(`${apiURL}/cliente`, { 
-            headers: { 'Authorization': `Bearer ${token}` } 
-        });
-        const clientes = await handleResponse(resClientes);
+    
+    fetch(`${apiURL}/cliente`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(clientes => {
         const selectCliente = document.getElementById('turno-cliente-id');
         selectCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
         clientes.forEach(c => {
             selectCliente.innerHTML += `<option value="${c.id}">${c.nombre || c.name}</option>`;
         });
-
-        const resProfesionales = await fetch(`${apiURL}/profesional`, { 
-            headers: { 'Authorization': `Bearer ${token}` } 
-        });
-        const profesionales = await handleResponse(resProfesionales);
+        return fetch(`${apiURL}/profesional`, { headers: { 'Authorization': `Bearer ${token}` } });
+    })
+    .then(handleResponse)
+    .then(profesionales => {
         const selectProfesional = document.getElementById('turno-profesional-id');
         selectProfesional.innerHTML = '<option value="">Seleccione un profesional...</option>';
         profesionales.forEach(p => {
             selectProfesional.innerHTML += `<option value="${p.id}">${p.nombre || p.name}</option>`;
         });
-    } catch (error) {
-        console.error(error);
-    }
+    })
+    .catch(error => console.error(error));
 }
 
-let calendarioTurno = null;
-function mostrarFormularioTurno() {
-    document.getElementById('form-turno-container').classList.remove('hidden');
-    document.getElementById('form-crear-turno').reset();
-    fechaSeleccionada = "";
-    horaSeleccionada = "";
-
-    // Inyectamos un contenedor para los botones de horario debajo del input de fecha
-    let containerHorarios = document.getElementById('horarios-container');
-    if (!containerHorarios) {
-        const inputFecha = document.getElementById('turno-fecha-hora');
-        containerHorarios = document.createElement('div');
-        containerHorarios.id = 'horarios-container';
-        containerHorarios.style = 'margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px;';
-        inputFecha.parentNode.insertBefore(containerHorarios, inputFecha.nextSibling);
-    }
-    containerHorarios.innerHTML = ''; // Limpiar botones anteriores
-
-    // Configurar Flatpickr SOLO PARA FECHA
-    calendarioTurno = flatpickr("#turno-fecha-hora", {
-        enableTime: false,        // <-- MODIFICADO (La hora se elige con los botones)
-        dateFormat: "Y-m-d",      // <-- MODIFICADO
-        locale: "es",
-        minDate: "today",
-        disable: [
-            function(date) {
-                // Bloquear todos los días si no ha cargado la disponibilidad o no trabaja ese día
-                if (diasTrabajo.length === 0) return true;
-                return !diasTrabajo.includes(date.getDay());
-            }
-        ],
-        onChange: function(selectedDates, dateStr, instance) {
-            fechaSeleccionada = dateStr;
-            horaSeleccionada = "";
-            buscarHorariosLibres();
-        }
-    });
-}
-
-
-async function buscarHorariosLibres() {
+function buscarHorariosLibres() {
     const profId = document.getElementById('turno-profesional-id').value;
     const servId = document.getElementById('turno-servicio-id').value;
     const container = document.getElementById('horarios-container');
-
+    
     if (!profId || !servId || !fechaSeleccionada) {
         container.innerHTML = '<span style="color:gray; font-size:14px;">Seleccione profesional y servicio primero.</span>';
         return;
     }
-
+    
     container.innerHTML = '<span style="color:gray;">Buscando horarios disponibles...</span>';
-
-    try {
-        const res = await fetch(`${apiURL}/disponibilidad/horarios/${profId}/${servId}/${fechaSeleccionada}`);
-        const horarios = await res.json();
-
+    
+    fetch(`${apiURL}/disponibilidad/horarios/${profId}/${servId}/${fechaSeleccionada}`)
+    .then(res => res.json())
+    .then(horarios => {
         container.innerHTML = '';
         if (horarios.length === 0) {
             container.innerHTML = '<span style="color:#d9534f; font-weight:bold;">Agenda llena para este día.</span>';
             return;
         }
-
-        // Crear botones de horas interactivos
         horarios.forEach(hora => {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.innerText = hora;
-            // Estilos directos (puedes pasarlos a tu styles.css)
             btn.style = 'padding: 8px 15px; border: 1px solid #007bff; border-radius: 5px; cursor: pointer; background: white; color: #007bff; font-weight: bold; transition: 0.2s;';
-            
             btn.onclick = () => {
-                
                 Array.from(container.children).forEach(b => {
                     b.style.background = 'white';
                     b.style.color = '#007bff';
                 });
-                
                 btn.style.background = '#007bff';
                 btn.style.color = 'white';
                 horaSeleccionada = hora;
             };
             container.appendChild(btn);
         });
-
-    } catch (error) {
+    })
+    .catch(error => {
         console.error(error);
         container.innerHTML = '<span style="color:red;">Error al cargar horarios.</span>';
-    }
+    });
 }
 
-function cerrarFormularioTurno() {
-    document.getElementById('form-turno-container').classList.add('hidden');
-    document.getElementById('form-crear-turno').reset();
-    const selectServicio = document.getElementById('turno-servicio-id');
-    selectServicio.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
-    selectServicio.disabled = true;
-}
-
-async function crearTurno(event) {
+function crearTurno(event) {
     event.preventDefault();
-
     if (!fechaSeleccionada || !horaSeleccionada) {
         alert("Por favor, seleccione un día en el calendario y haga clic en uno de los horarios disponibles.");
         return;
     }
-
+    
     const token = localStorage.getItem("token");
-
     const datos = {
         cliente_id: document.getElementById('turno-cliente-id').value,
         profesional_id: document.getElementById('turno-profesional-id').value,
         servicio_id: document.getElementById('turno-servicio-id').value,
-        fecha_hora: `${fechaSeleccionada} ${horaSeleccionada}` // <-- Ahora se enviará "2026-06-15 14:30"
+        fecha_hora: `${fechaSeleccionada} ${horaSeleccionada}` 
     };
 
-    try {
-        const response = await fetch(`${apiURL}/turno`, {
-            method: 'POST',
-            headers: { 
-                'Authorization': `Bearer ${token}`, 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(datos)
-        });
-        
+    fetch(`${apiURL}/turno`, {
+        method: 'POST',
+        headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => {
         if (!response.ok) {
-            const errorData = await response.json();
-            alert("No se puede asignar el turno:\n" + errorData.error);
-            return; 
+            return response.json().then(errorData => {
+                throw new Error("No se puede asignar el turno:\n" + (errorData.error || "Error desconocido"));
+            });
         }
-        
-        await handleResponse(response);
-        
+        return handleResponse(response);
+    })
+    .then(() => {
         alert("Turno asignado correctamente.");
         turnos();
         cerrarFormularioTurno();
-
-    } catch (error) {
-        console.error(error);
-    }
+    })
+    .catch(error => alert(error.message));
 }
 
-async function turnos() {
+function turnos() {
     const token = localStorage.getItem("token");
-    console.log("Intentando cargar turnos..."); // DEBUG
-    try {
-        const response = await fetch(`${apiURL}/turnos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        // Verifica si la respuesta es ok antes de procesar
+    fetch(`${apiURL}/turnos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(response => {
         if (!response.ok) {
-            const err = await response.json();
-            console.error("Error del servidor:", err);
-            return;
+            return response.json().then(err => { throw err; });
         }
-
-        const turnos = await response.json();
-        
+        return response.json();
+    })
+    .then(turnosData => {
         const tbody = document.querySelector('#turnos .data-table tbody');
         if (tbody) {
             tbody.innerHTML = '';
-            turnos.forEach(t => {
+            turnosData.forEach(t => {
                 let fechaFormateada = t.fecha_hora || 'Sin fecha';
                 let botonesAccion = '';
                 const estadoActual = t.estado || 'Pendiente';
                 
                 if (estadoActual === 'Pendiente') {
                     botonesAccion = `
-                            <button class="btn-primary" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
-                                onclick="cambiarEstadoTurno(${t.id}, 'Completado')">
-                                Completado
-                            </button>
-                            <button class="btn-danger" style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
-                                onclick="cambiarEstadoTurno(${t.id}, 'Ausente')">
-                                Ausente
-                            </button>
-                        `;
-                    } else {
-                        botonesAccion = `<span style="color: gray; font-style: italic; margin-right: 10px;">Turno ${estadoActual}</span>`;
-                    }
-                    
-
-                    const clienteSeguro = (t.cliente_nombre || t.cliente || '-').replace(/'/g, "\\'");
-                    const servicioSeguro = (t.servicio_nombre || t.servicio || '-').replace(/'/g, "\\'");
-                    botonesAccion += `
-                        <button class="btn-primary" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" 
-                            onclick="generarPDFTurno(${t.id}, '${clienteSeguro}', '${servicioSeguro}', '${fechaFormateada}', '${estadoActual}')">
-                            Descargar PDF
-                        </button>
+                        <button class="btn-primary" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
+                            onclick="cambiarEstadoTurno(${t.id}, 'Completado')">Completado</button>
+                        <button class="btn-danger" style="background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;" 
+                            onclick="cambiarEstadoTurno(${t.id}, 'Ausente')">Ausente</button>
                     `;
-
+                } else {
+                    botonesAccion = `<span style="color: gray; font-style: italic; margin-right: 10px;">Turno ${estadoActual}</span>`;
+                }
+                
+                const clienteSeguro = (t.cliente_nombre || t.cliente || '-').replace(/'/g, "\\'");
+                const servicioSeguro = (t.servicio_nombre || t.servicio || '-').replace(/'/g, "\\'");
+                botonesAccion += `
+                    <button class="btn-primary" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" 
+                        onclick="generarPDFTurno(${t.id}, '${clienteSeguro}', '${servicioSeguro}', '${fechaFormateada}', '${estadoActual}')">Descargar PDF</button>
+                `;
+                
                 tbody.innerHTML += `
                     <tr>
                         <td>${fechaFormateada}</td>
@@ -291,34 +217,26 @@ async function turnos() {
                 `;
             });
         }
-    } catch (error) {
-        console.error("Error de conexión:", error); // DEBUG
-    }
+    })
+    .catch(error => console.error("Error de conexión:", error));
 }
 
-async function cambiarEstadoTurno(id, nuevoEstado) {
-    if (!confirm(`¿Estás seguro de marcar este turno como ${nuevoEstado}?`)) {
-        return;
-    }
-
+function cambiarEstadoTurno(id, nuevoEstado) {
+    if (!confirm(`¿Estás seguro de marcar este turno como ${nuevoEstado}?`)) return;
+    
     const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`${apiURL}/turno/${id}/estado`, {
-            method: 'PUT',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ estado: nuevoEstado })
-        });
-        
-        await handleResponse(response);
-        turnos(); 
-        
-    } catch (error) {
-        console.error(error);
-    }   
-}  
+    fetch(`${apiURL}/turno/${id}/estado`, {
+        method: 'PUT',
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ estado: nuevoEstado })
+    })
+    .then(handleResponse)
+    .then(() => turnos())
+    .catch(error => console.error(error));
+}
 
     window.generarPDFTurno = function(id, cliente, servicio, fechaHora, estado) {
     document.getElementById('pdf-id').innerText = id;

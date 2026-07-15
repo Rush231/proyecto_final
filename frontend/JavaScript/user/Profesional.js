@@ -7,49 +7,20 @@ function mostrarFormularioProfesional() {
     cargarCheckboxesServicios(); 
 }
 
-async function abrirEditarProfesional(id, nombre, especialidad, horaInicio, horaFin, dias) {
-    document.getElementById('profesional-id').value = id;
-    document.getElementById('profesional-nombre').value = nombre;
-    document.getElementById('profesional-especialidad').value = especialidad;
-    document.getElementById('profesional-hora-inicio').value = horaInicio !== 'null' ? horaInicio : '';
-    document.getElementById('profesional-hora-fin').value = horaFin !== 'null' ? horaFin : '';
-
-    document.getElementById('form-profesional-titulo').innerText = "Editar Profesional";
-    document.getElementById('form-profesional-container').classList.remove('hidden');
-
-    await cargarCheckboxesServicios();
-
-    
-    const mapaDiasInverso = { '1': 'Lun', '2': 'Mar', '3': 'Mié', '4': 'Jue', '5': 'Vie', '6': 'Sáb', '0': 'Dom' };
-
-    const checkboxesDias = document.querySelectorAll('.dia-checkbox');
-    checkboxesDias.forEach(cb => {
-        const nombreDiaCorto = mapaDiasInverso[cb.value]; // Obtiene 'Lun', 'Mar', etc.
-        cb.checked = dias && dias.includes(nombreDiaCorto);
-    });
-}
-
-function cerrarFormularioProfesional() {
-    document.getElementById('form-profesional-container').classList.add('hidden');
-    document.getElementById('form-crear-profesional').reset();
-}
-
-async function cargarCheckboxesServicios() {
+function cargarCheckboxesServicios() {
     const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`${apiURL}/servicio`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const servicios = await handleResponse(response);
-        
+    // Retornamos el fetch para poder encadenarlo luego en "abrirEditarProfesional"
+    return fetch(`${apiURL}/servicio`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(servicios => {
         const contenedor = document.getElementById('contenedor-servicios-checkbox');
-        contenedor.innerHTML = ''; 
-
+        contenedor.innerHTML = '';
         if (servicios.length === 0) {
             contenedor.innerHTML = '<span style="color: gray;">No hay servicios registrados.</span>';
             return;
         }
-
         servicios.forEach(s => {
             contenedor.innerHTML += `
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal;">
@@ -58,30 +29,51 @@ async function cargarCheckboxesServicios() {
                 </label>
             `;
         });
-    } catch (error) {
-        console.error("Error cargando servicios para checkboxes:", error);
-        document.getElementById('contenedor-servicios-checkbox').innerHTML = '<span style="color: red;">Error al cargar servicios.</span>';
-    }
+    })
+    .catch(error => {
+        console.error("Error cargando servicios:", error);
+        document.getElementById('contenedor-servicios-checkbox').innerHTML = '<span style="color: red;">Error.</span>';
+    });
 }
 
+function abrirEditarProfesional(id, nombre, especialidad, horaInicio, horaFin, dias) {
+    document.getElementById('profesional-id').value = id;
+    document.getElementById('profesional-nombre').value = nombre;
+    document.getElementById('profesional-especialidad').value = especialidad;
+    document.getElementById('profesional-hora-inicio').value = horaInicio !== 'null' ? horaInicio : '';
+    document.getElementById('profesional-hora-fin').value = horaFin !== 'null' ? horaFin : '';
+    document.getElementById('form-profesional-titulo').innerText = "Editar Profesional";
+    document.getElementById('form-profesional-container').classList.remove('hidden');
+    
+    // Encadenamos el then porque necesitamos que los checkboxes existan antes de marcarlos
+    cargarCheckboxesServicios().then(() => {
+        const mapaDiasInverso = { '1': 'Lun', '2': 'Mar', '3': 'Mié', '4': 'Jue', '5': 'Vie', '6': 'Sáb', '0': 'Dom' };
+        const checkboxesDias = document.querySelectorAll('.dia-checkbox');
+        checkboxesDias.forEach(cb => {
+            const nombreDiaCorto = mapaDiasInverso[cb.value]; 
+            cb.checked = dias && dias.includes(nombreDiaCorto);
+        });
+    });
+}
+function cerrarFormularioProfesional() {
+    document.getElementById('form-profesional-container').classList.add('hidden');
+    document.getElementById('form-crear-profesional').reset();
+}
 
-async function guardarProfesional(event) {
+function guardarProfesional(event) {
     event.preventDefault();
     const token = localStorage.getItem("token");
-    
     const id = document.getElementById('profesional-id').value;
     const horaInicio = document.getElementById('profesional-hora-inicio').value;
     const horaFin = document.getElementById('profesional-hora-fin').value;
-
     
     if (horaInicio >= horaFin) {
         alert("Error: La hora de salida debe ser posterior a la hora de entrada.");
         return; 
     }
-
+    
     const checkboxesServicios = document.querySelectorAll('.servicio-checkbox:checked');
     const checkboxesDias = document.querySelectorAll('.dia-checkbox:checked');
-    
     const datos = {
         nombre: document.getElementById('profesional-nombre').value,
         especialidad: document.getElementById('profesional-especialidad').value,
@@ -94,57 +86,55 @@ async function guardarProfesional(event) {
     const url = id ? `${apiURL}/profesional/${id}` : `${apiURL}/profesional`;
     const metodo = id ? 'PUT' : 'POST';
 
-    try {
-        const response = await fetch(url, {
-            method: metodo,
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-        
-        await handleResponse(response);
-        cargarProfesionales(); 
-        if (typeof cargarDatosFormularioTurno === 'function') {
-            cargarDatosFormularioTurno();
-        }
-        cerrarFormularioProfesional();
-    } catch (error) {
-        console.error("Error al guardar profesional:", error);
-        alert("Ocurrió un error en el servidor. Revisa la consola de Flask.");
-    }
-}
-async function eliminarProfesional(id) {
-    if (!confirm("¿Estás seguro? Se eliminarán también los horarios de este profesional.")) return;
-    
-    const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`${apiURL}/profesional/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        await handleResponse(response);
+    fetch(url, {
+        method: metodo,
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+    })
+    .then(handleResponse)
+    .then(() => {
         cargarProfesionales();
-    } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("Error al eliminar el profesional. Asegúrate de que no tenga turnos activos.");
-    }
+        if (typeof cargarDatosFormularioTurno === 'function') cargarDatosFormularioTurno();
+        cerrarFormularioProfesional();
+    })
+    .catch(error => {
+        console.error("Error al guardar profesional:", error);
+        alert("Ocurrió un error en el servidor.");
+    });
 }
 
-async function cargarProfesionales() {
+function eliminarProfesional(id) {
+    if (!confirm("¿Estás seguro? Se eliminarán también los horarios de este profesional.")) return;
     const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`${apiURL}/profesional`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const profesionales = await handleResponse(response);
-        
+
+    fetch(`${apiURL}/profesional/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(() => cargarProfesionales())
+    .catch(error => {
+        console.error("Error al eliminar:", error);
+        alert("Error al eliminar el profesional. Asegúrate de que no tenga turnos activos.");
+    });
+}
+
+function cargarProfesionales() {
+    const token = localStorage.getItem("token");
+
+    fetch(`${apiURL}/profesional`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(profesionales => {
         const tbody = document.querySelector('#profesionales .data-table tbody');
-        if(tbody) {
+        if (tbody) {
             tbody.innerHTML = '';
             profesionales.forEach(p => {
                 const horaInicio = p.hora_inicio ? p.hora_inicio.padStart(8, '0').substring(0, 5) : null;
                 const horaFin = p.hora_fin ? p.hora_fin.padStart(8, '0').substring(0, 5) : null;
                 const horario = horaInicio && horaFin ? `${horaInicio} a ${horaFin}` : 'Sin horario';
-                    
+                
                 let diasFormateados = p.dias_trabajo ? String(p.dias_trabajo) : '';
                 const diccionarioDias = { '0': 'Dom', '1': 'Lun', '2': 'Mar', '3': 'Mié', '4': 'Jue', '5': 'Vie', '6': 'Sáb', '7': 'Dom' };
                 
@@ -156,9 +146,7 @@ async function cargarProfesionales() {
                         return limpio;
                     }).join(', ');
                 }
-
                 const nombreSeguro = (p.nombre || p.name).replace(/'/g, "\\'");
-
                 tbody.innerHTML += `
                     <tr>
                         <td>${p.nombre || p.name}</td>
@@ -169,22 +157,18 @@ async function cargarProfesionales() {
                         </td>
                         <td>
                             <button class="btn-primary" style="padding: 5px 10px; margin-right: 5px;" 
-                                onclick="abrirEditarProfesional(${p.id}, '${nombreSeguro}', '${p.especialidad}', '${horaInicio}', '${horaFin}', '${diasFormateados}')">
-                                Editar
-                            </button>
+                                onclick="abrirEditarProfesional(${p.id}, '${nombreSeguro}', '${p.especialidad}', '${horaInicio}', '${horaFin}', '${diasFormateados}')">Editar</button>
                             <button class="btn-danger" style="background-color: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer;" 
-                                onclick="eliminarProfesional(${p.id})">
-                                Eliminar
-                            </button>
+                                onclick="eliminarProfesional(${p.id})">Eliminar</button>
                         </td>
                     </tr>
                 `;
             });
         }
-    } catch (error) {
-        console.error("Error cargando tabla:", error);
-    }
+    })
+    .catch(error => console.error("Error cargando tabla:", error));
 }
+
 function inicializarSelectsHorariosProfesional() {
     const selects = ['profesional-hora-inicio', 'profesional-hora-fin'];
     

@@ -48,88 +48,66 @@ document.addEventListener("DOMContentLoaded", () => {
     cargarReportes('profesional');
 });
 
-async function cargarReportes(criterio = 'profesional') {
+function cargarReportes(criterio = 'profesional') {
     const token = localStorage.getItem("token");
     const tbody = document.querySelector('#tabla-reportes tbody');
-    
     if (!token) return;
+    
     if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Cargando datos por ${criterio}...</td></tr>`;
 
-    try {
-        const response = await fetch(`${apiURL}/turnos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const turnos = await handleResponse(response);
-
+    fetch(`${apiURL}/turnos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(turnos => {
         const totalTurnos = turnos.length;
         const turnosReservados = turnos.filter(t => t.estado === 'Pendiente' || t.estado === 'reservado').length;
         const turnosCompletados = turnos.filter(t => t.estado === 'Completado').length;
         const turnosCancelados = turnos.filter(t => t.estado === 'Cancelado' || t.estado === 'Ausente').length;
         
         const porcentajeOcupacion = totalTurnos === 0 ? 0 : Math.round((turnosReservados / totalTurnos) * 100);
-
         document.getElementById('rep-ocupacion').innerText = `${porcentajeOcupacion}%`;
         document.getElementById('rep-reservados').innerText = turnosReservados;
         document.getElementById('rep-disponibles').innerText = turnosCompletados;
 
-        // --- INICIO DEL NUEVO GRÁFICO POR DÍA ---
-        
-        // 1. Agrupar la cantidad de turnos por fecha
         const turnosPorDia = {};
         turnos.forEach(t => {
             if (t.fecha_hora && t.fecha_hora !== 'Sin fecha') {
-                // t.fecha_hora viene como "15/06/2026 14:30". Cortamos por el espacio para tomar solo "15/06/2026"
                 const fecha = t.fecha_hora.split(' ')[0]; 
                 turnosPorDia[fecha] = (turnosPorDia[fecha] || 0) + 1;
             }
         });
 
-        // 2. Ordenar las fechas cronológicamente
         const fechasOrdenadas = Object.keys(turnosPorDia).sort((a, b) => {
             const [diaA, mesA, anioA] = a.split('/');
             const [diaB, mesB, anioB] = b.split('/');
             return new Date(anioA, mesA - 1, diaA) - new Date(anioB, mesB - 1, diaB);
         });
 
-        // 3. Tomar los últimos 7 días (para no saturar el gráfico) y darles formato
         const datosGrafico = fechasOrdenadas.slice(-7).map(fecha => ({
-            etiqueta: fecha.substring(0, 5), // Corta "15/06/2026" para que en el gráfico solo diga "15/06"
+            etiqueta: fecha.substring(0, 5),
             valor: turnosPorDia[fecha]
         }));
-
-        // 4. Llamar a la función que dibuja el canvas
         dibujarGraficoPorDia(datosGrafico);
-        
-        // --- FIN DEL NUEVO GRÁFICO ---
 
         const agrupado = {};
-
         turnos.forEach(t => {
             let clave = "Desconocido";
-            if (criterio === 'profesional') {
-                clave = t.profesional_nombre || "Profesional " + t.profesional_id;
-            } else if (criterio === 'servicio') {
-                clave = t.servicio_nombre || "Servicio Desconocido";
-            } else if (criterio === 'cliente') {
-                clave = t.cliente_nombre || "Cliente Desconocido";
-            }
+            if (criterio === 'profesional') clave = t.profesional_nombre || "Profesional " + t.profesional_id;
+            else if (criterio === 'servicio') clave = t.servicio_nombre || "Servicio Desconocido";
+            else if (criterio === 'cliente') clave = t.cliente_nombre || "Cliente Desconocido";
 
-            if (!agrupado[clave]) {
-                agrupado[clave] = { total: 0, completados: 0, cancelados: 0 };
-            }
-
+            if (!agrupado[clave]) agrupado[clave] = { total: 0, completados: 0, cancelados: 0 };
             agrupado[clave].total++;
             if (t.estado === 'Completado') agrupado[clave].completados++;
             if (t.estado === 'Cancelado' || t.estado === 'Ausente') agrupado[clave].cancelados++;
         });
 
         tbody.innerHTML = '';
-
         if (Object.keys(agrupado).length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No hay turnos registrados en este local.</td></tr>`;
             return;
         }
-
         for (const [nombre, datos] of Object.entries(agrupado)) {
             tbody.innerHTML += `
                 <tr>
@@ -140,11 +118,11 @@ async function cargarReportes(criterio = 'profesional') {
                 </tr>
             `;
         }
-
-    } catch (error) {
+    })
+    .catch(error => {
         console.error("Error al cargar reportes:", error);
         if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: red;">Error al cargar los datos.</td></tr>`;
-    }
+    });
 }
 
 function renderizarServiciosComoTags(servicios) {

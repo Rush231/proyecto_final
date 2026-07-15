@@ -1,46 +1,31 @@
-async function cargarConfiguracion() {
+function cargarConfiguracion() {
     const token = localStorage.getItem("token");
     if (!token) return;
-
-    try {
-        const response = await fetch(`${apiURL}/negocio/configuracion`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await handleResponse(response);
-        
+    
+    fetch(`${apiURL}/negocio/configuracion`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(data => {
         document.getElementById('config-nombre').value = data.nombre || '';
         document.getElementById('config-telefono').value = data.telefono || '';
-        
-        if (data.hora_apertura) {
-            document.getElementById('config-apertura').value = data.hora_apertura.substring(0,5);
-        }
-
-        if (data.hora_cierre) {
-            document.getElementById('config-cierre').value = data.hora_cierre.substring(0,5);
-        }
-        
-    } catch (error) {
-        console.error("Error al cargar configuración:", error);
-    }
+        if (data.hora_apertura) document.getElementById('config-apertura').value = data.hora_apertura.substring(0,5);
+        if (data.hora_cierre) document.getElementById('config-cierre').value = data.hora_cierre.substring(0,5);
+    })
+    .catch(error => console.error("Error al cargar configuración:", error));
 }
 
-async function guardarConfiguracion(e) {
+function guardarConfiguracion(e) {
     e.preventDefault();
     const token = localStorage.getItem("token");
-
-    // 1. Obtenemos los valores de los horarios
     const horaApertura = document.getElementById('config-apertura').value;
     const horaCierre = document.getElementById('config-cierre').value;
 
-    // 2. Validación lógica
-    if (horaApertura && horaCierre) {
-        if (horaApertura >= horaCierre) {
-            alert("Error: La hora de cierre debe ser posterior a la hora de apertura.");
-            return;
-        }
+    if (horaApertura && horaCierre && horaApertura >= horaCierre) {
+        alert("Error: La hora de cierre debe ser posterior a la hora de apertura.");
+        return;
     }
 
-    // 3. ÚNICA declaración de 'datos'
     const datos = {
         nombre: document.getElementById('config-nombre').value,
         telefono: document.getElementById('config-telefono').value,
@@ -48,24 +33,21 @@ async function guardarConfiguracion(e) {
         hora_cierre: horaCierre
     };
 
-    try {
-        const response = await fetch(`${apiURL}/negocio/configuracion`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(datos)
-        });
-        
-        await handleResponse(response);
-        alert("Configuración actualizada correctamente.");
-    } catch (error) {
+    fetch(`${apiURL}/negocio/configuracion`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(handleResponse)
+    .then(() => alert("Configuración actualizada correctamente."))
+    .catch(error => {
         console.error("Error al guardar:", error);
         alert("Hubo un error al guardar la configuración.");
-    }
+    });
 }
-
 
 function inicializarSelectsHorarios() {
     const selects = ['config-apertura', 'config-cierre'];

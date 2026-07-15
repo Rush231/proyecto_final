@@ -49,66 +49,32 @@ function crearServicio(event) {
     });
 }
 
-async function guardarServicio(event) {
-    event.preventDefault();
-    const id = document.getElementById('input-servicio-id').value;
-    const datos = {
-        nombre: document.getElementById('servicio-nombre').value,
-        duracion: document.getElementById('servicio-duracion').value,
-    };
-
-    const url = id ? `${apiURL}/servicio/${id}` : `${apiURL}/servicio`;
-    const method = id ? 'PUT' : 'POST';
-
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: { 
-                'Authorization': `Bearer ${localStorage.getItem("token")}`,
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(datos)
-        });
-        
-        if (response.ok) {
-            alert("Servicio guardado exitosamente");
-            cargarServicios(); // Recargar tabla
-            cerrarFormularioServicio();
-        }
-    } catch (error) {
-        console.error("Error al guardar:", error);
-    }
-}
-
-async function eliminarServicio(id) {
-    if (!confirm("¿Estás seguro de eliminar este servicio?")) {
-        return;
-    }
-    
+function eliminarServicio(id) {
+    if (!confirm("¿Estás seguro de eliminar este servicio?")) { return; }
     const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`${apiURL}/servicio/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        await handleResponse(response);
+
+    fetch(`${apiURL}/servicio/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(() => {
         cargarServicios();
-        
-    } catch (error) {
+    })
+    .catch(error => {
         console.error(error);
         alert("Error al eliminar el servicio.");
-    }
+    });
 }
 
-async function cargarServicios() {
+function cargarServicios() {
     const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`${apiURL}/servicio`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const servicios = await handleResponse(response);
-        
+    
+    fetch(`${apiURL}/servicio`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(servicios => {
         const tbody = document.querySelector('#tabla-servicios tbody');
         if (tbody) {
             tbody.innerHTML = '';
@@ -116,19 +82,18 @@ async function cargarServicios() {
                 const servicioJson = JSON.stringify(s).replace(/"/g, '&quot;');
                 tbody.innerHTML += `
                     <tr>
-                            <td>${s.nombre || s.name}</td>
-                            <td>${s.duracion} min</td>
-                            <td>
-                                <button class="btn-danger" onclick="eliminarServicio(${s.id})">Eliminar</button>
-                                <button class="btn-primary" onclick="editarServicio('${servicioJson}')">Editar</button>
-                            </td>
-                        </tr>
-                    `;
+                        <td>${s.nombre || s.name}</td>
+                        <td>${s.duracion} min</td>
+                        <td>
+                            <button class="btn-danger" onclick="eliminarServicio(${s.id})">Eliminar</button>
+                            <button class="btn-primary" onclick="editarServicio('${servicioJson}')">Editar</button>
+                        </td>
+                    </tr>
+                `;
             });
         }
-    } catch (error) {
-        console.error(error);
-    }
+    })
+    .catch(error => console.error(error));
 }
 window.editarServicio = async function(servicioStr) {
     try {
