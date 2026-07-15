@@ -4,9 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-let diasTrabajo = []; 
-let fechaSeleccionada = ""; 
+let diasTrabajo = [];
+let fechaSeleccionada = "";
 let horaSeleccionada = "";
+let calendarioTurno = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    turnos();
+    cargarDatosFormularioTurno();
+});
 
 document.getElementById('turno-profesional-id').addEventListener('change', function() {
     const profId = this.value;
@@ -18,15 +24,15 @@ document.getElementById('turno-profesional-id').addEventListener('change', funct
         diasTrabajo = [];
         return;
     }
-    try {
-        const token = localStorage.getItem("token");
-        
-        // Cargar servicios
-        const resServicios = await fetch(`${apiURL}/servicio/profesional/${profId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const servicios = await handleResponse(resServicios);
-        
+    
+    const token = localStorage.getItem("token");
+    
+    // Hacemos la primera petición para cargar los servicios del profesional
+    fetch(`${apiURL}/servicio/profesional/${profId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(handleResponse)
+    .then(servicios => {
         selectServicio.innerHTML = '<option value="">Seleccione un servicio...</option>';
         if (servicios.length === 0) {
             selectServicio.innerHTML = '<option value="">Este profesional no tiene servicios asignados</option>';
@@ -37,12 +43,15 @@ document.getElementById('turno-profesional-id').addEventListener('change', funct
             });
             selectServicio.disabled = false;
         }
-
-        //  Obtener días de trabajo para bloquear el calendario
-        const resDias = await fetch(`${apiURL}/disponibilidad/dias/${profId}`);
-        diasTrabajo = await resDias.json();
-        
-        // Si el calendario ya está abierto, actualizamos los bloqueos
+        // Retornamos la segunda petición para mantener la cadena de promesas limpia sin anidar
+        return fetch(`${apiURL}/disponibilidad/dias/${profId}`);
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Error al obtener los días de trabajo");
+        return res.json();
+    })
+    .then(dias => {
+        diasTrabajo = dias;
         if (calendarioTurno) {
             calendarioTurno.set("disable", [
                 function(date) { return !diasTrabajo.includes(date.getDay()); }
@@ -50,10 +59,8 @@ document.getElementById('turno-profesional-id').addEventListener('change', funct
             calendarioTurno.clear(); 
             document.getElementById('horarios-container').innerHTML = ''; 
         }
-
-    } catch (error) {
-        console.error(error);
-    }
+    })
+    .catch(error => console.error("Error en la carga de datos del profesional:", error));
 });
 
 document.getElementById('turno-servicio-id').addEventListener('change', function() {
@@ -84,6 +91,49 @@ function cargarDatosFormularioTurno() {
         });
     })
     .catch(error => console.error(error));
+}
+
+function mostrarFormularioTurno() {
+    document.getElementById('form-turno-container').classList.remove('hidden');
+    document.getElementById('form-crear-turno').reset();
+    fechaSeleccionada = "";
+    horaSeleccionada = "";
+    
+    let containerHorarios = document.getElementById('horarios-container');
+    if (!containerHorarios) {
+        const inputFecha = document.getElementById('turno-fecha-hora');
+        containerHorarios = document.createElement('div');
+        containerHorarios.id = 'horarios-container';
+        containerHorarios.style = 'margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px;';
+        inputFecha.parentNode.insertBefore(containerHorarios, inputFecha.nextSibling);
+    }
+    containerHorarios.innerHTML = ''; 
+    
+    calendarioTurno = flatpickr("#turno-fecha-hora", {
+        enableTime: false,
+        dateFormat: "Y-m-d",
+        locale: "es",
+        minDate: "today",
+        disable: [
+            function(date) {
+                if (diasTrabajo.length === 0) return true;
+                return !diasTrabajo.includes(date.getDay());
+            }
+        ],
+        onChange: function(selectedDates, dateStr, instance) {
+            fechaSeleccionada = dateStr;
+            horaSeleccionada = "";
+            buscarHorariosLibres();
+        }
+    });
+}
+
+function cerrarFormularioTurno() {
+    document.getElementById('form-turno-container').classList.add('hidden');
+    document.getElementById('form-crear-turno').reset();
+    const selectServicio = document.getElementById('turno-servicio-id');
+    selectServicio.innerHTML = '<option value="">Primero seleccione un profesional...</option>';
+    selectServicio.disabled = true;
 }
 
 function buscarHorariosLibres() {
@@ -238,18 +288,15 @@ function cambiarEstadoTurno(id, nuevoEstado) {
     .catch(error => console.error(error));
 }
 
-    window.generarPDFTurno = function(id, cliente, servicio, fechaHora, estado) {
+window.generarPDFTurno = function(id, cliente, servicio, fechaHora, estado) {
     document.getElementById('pdf-id').innerText = id;
     document.getElementById('pdf-cliente').innerText = cliente;
     document.getElementById('pdf-servicio').innerText = servicio;
     document.getElementById('pdf-fecha').innerText = fechaHora;
     document.getElementById('pdf-estado').innerText = estado;
 
-    // 2. Seleccionar elemento
     const elemento = document.getElementById('ticket-turno');
     
-    //  el elemento siempre está "ahí" pero invisible para el usuario.
-
     const opciones = {
         margin:       10,
         filename:     `Turno_${cliente.replace(/\s+/g, '_')}_${id}.pdf`,
@@ -258,7 +305,5 @@ function cambiarEstadoTurno(id, nuevoEstado) {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // 3. Generar PDF
     html2pdf().set(opciones).from(elemento).save();
-};
-
+}
