@@ -261,6 +261,7 @@ function turnos() {
                         <td>${fechaFormateada}</td>
                         <td>${t.cliente_nombre || t.cliente || '-'}</td>
                         <td>${t.servicio_nombre || t.servicio || '-'}</td>
+                        <td>${t.profesional_nombre || '-'}</td>
                         <td><strong>${estadoActual}</strong></td>
                         <td>${botonesAccion}</td>
                     </tr>
