@@ -72,12 +72,11 @@ function cargarReportes(criterio = 'profesional') {
 
         const turnosPorDia = {};
         turnos.forEach(t => {
-            if (t.fecha_hora && t.fecha_hora !== 'Sin fecha') {
+        if (t.fecha_hora && t.fecha_hora !== 'Sin fecha' && (t.estado === 'Pendiente' || t.estado === 'reservado')) {
                 const fecha = t.fecha_hora.split(' ')[0]; 
                 turnosPorDia[fecha] = (turnosPorDia[fecha] || 0) + 1;
             }
         });
-
         const fechasOrdenadas = Object.keys(turnosPorDia).sort((a, b) => {
             const [diaA, mesA, anioA] = a.split('/');
             const [diaB, mesB, anioB] = b.split('/');
